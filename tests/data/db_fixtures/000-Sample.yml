@@ -1,0 +1,83 @@
+---
+- accession_number: ERS013342
+  consent_withdrawn: 0
+  control: ~
+  created: 2010-07-26 14:56:52
+  deleted_at: ~
+  description: ''
+  id_lims: SQSCP
+  id_sample_lims: 10000
+  id_sample_tmp: 1
+  last_updated: 2012-08-03 10:07:02
+  organism: Burkholderia pseudomallei
+  recorded_at: 2014-11-18 13:06:19
+  reference_genome: ' '
+  replicate: ~
+  sample_visibility: Hold
+  strain: ATCC15682
+  taxon_id: 28450
+  uuid_sample_lims: 1788c8d0-6a6c-11e4-8e19-68b59977951c
+- accession_number: ERS013343
+  consent_withdrawn: 0
+  control: ~
+  created: 2010-07-26 14:56:52
+  deleted_at: ~
+  description: ''
+  id_lims: SQSCP
+  id_sample_lims: 10001
+  id_sample_tmp: 2
+  last_updated: 2012-08-03 10:07:02
+  organism: Burkholderia pseudomallei
+  recorded_at: 2014-11-18 13:06:19
+  reference_genome: ' '
+  replicate: ~
+  sample_visibility: Hold
+  strain: P6
+  taxon_id: 28450
+  uuid_sample_lims: 178df8f0-6a6c-11e4-8e19-68b59977951c
+- accession_number: ERS429032
+  cohort: ~
+  common_name: Homo Sapien
+  consent_withdrawn: 0
+  control: 0
+  created: 2014-03-06 11:24:06
+  deleted_at: ~
+  description: ~
+  father: ~
+  id_lims: SQSCP
+  id_sample_lims: 10003
+  id_sample_tmp: 3
+  last_updated: 2014-04-01 13:31:37
+  mother: ~
+  organism: ~
+  public_name: ~
+  recorded_at: 2015-01-21 04:44:43
+  reference_genome: Homo_sapiens (1000Genomes_hs37d5)
+  replicate: ~
+  sample_visibility: ~
+  strain: ~
+  taxon_id: 9606
+  uuid_sample_lims: d41d4a40-a521-11e3-8055-3c4a9275d6c6
+- accession_number: ERS429034
+  cohort: ~
+  common_name: Homo Sapien
+  consent_withdrawn: 0
+  control: 0
+  created: 2014-03-06 11:24:07
+  deleted_at: ~
+  description: ~
+  father: ~
+  id_lims: SQSCP
+  id_sample_lims: 10004
+  id_sample_tmp: 4
+  last_updated: 2014-04-01 13:31:41
+  mother: ~
+  organism: ~
+  public_name: ~
+  recorded_at: 2015-01-21 04:44:43
+  reference_genome: Homo_sapiens (1000Genomes_hs37d5)
+  replicate: ~
+  sample_visibility: ~
+  strain: ~
+  taxon_id: 9606
+  uuid_sample_lims: d492a150-a521-11e3-8055-3c4a9275d6c6

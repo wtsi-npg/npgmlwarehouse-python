@@ -1,0 +1,57 @@
+name: "Unit tests"
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash -l -e -o pipefail {0}
+
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    services:
+      mysql:
+        image: mysql:8.0.35
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: "admin"
+          MYSQL_DATABASE: "npgmlwarehousetest"
+          MYSQL_PASSWORD: "test"
+          MYSQL_TCP_PORT: 3306
+          MYSQL_USER: "test"
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v5
+    - name: set timezone
+      run: |
+        sudo timedatectl set-timezone Europe/London
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[test]
+    - name: Format check
+      run: |
+        ruff check
+    - name: Database Environment
+      run: |
+        echo "set global sql_mode = 'STRICT_TRANS_TABLES'" | mysql -h 127.0.0.1 -Dnpgmlwarehousetest -P3306 -u root -padmin
+        # Using the simplest character set to mitigate error 1071, 'Specified key was too long; max key length is 3072 bytes' for unique_pac_bio_entry key in pac_bio_run table
+        echo "ALTER DATABASE npgmlwarehousetest CHARACTER SET latin1 COLLATE latin1_swedish_ci" | mysql -h 127.0.0.1 -Dnpgmlwarehousetest -P3306 -u root -padmin
+    - name: Test
+      run: |
+        pytest -v --it

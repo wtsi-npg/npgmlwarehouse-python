@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools >= 64", "wheel", "setuptools-git-versioning>=2.0,<3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npgmlwarehouse-python"
+license = { file = "LICENSE", content-type = "text/plain" }
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [ 
+    { name = "Marco M. Mosca", email = "mm51@sanger.ac.uk" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Programming Language :: Python",
+    "Operating System :: Unix",
+    "Natural Language :: English",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+keywords = ["npg"]
+requires-python = ">= 3.12"
+
+dynamic = ["version"]
+
+description = "ORM and access layer for the existing multi-lims warehouse"
+dependencies = [
+    "sqlalchemy>2.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "ruff",
+    "pytest-it",
+    "sqlalchemy-utils",
+    "pyyaml",
+    "cryptography",
+    "pymysql",
+]
+
+[project.scripts]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["W", "F", "I"]
+
+[tool.setuptools-git-versioning]
+enabled = true

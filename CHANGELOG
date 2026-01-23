@@ -3,6 +3,16 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.2.0]
+
+### Added
+
+* ORM for useq_product_metrics and useq_run_metrics tables
+
+### Updated
+
+* seq_platform_name type with Elembio and Ultimagen in seq_product_irods_locations
+
 ## [0.1.0]
 
 ### Added

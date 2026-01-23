@@ -64,6 +64,12 @@ Listing of manual changes to the generated code:
     with the import from sqlalchemy.dialects.mysql
   - Single quotes for 'CURRENT_TIMESTAMP' in t_iseq_heron_product_metrics_view
     have been removed due to 'Invalid default value' error during CREATE.
+  - CHAR(32, "utf8mb3_unicode_ci") has been replaced by
+    CHAR(32, collation="utf8mb3_unicode_ci") in the instrument_name column
+    of useq_run_metrics (UseqRunMetrics) due to invalid arguments
+  - CHAR(64, "utf8mb3_unicode_ci") has been replaced by
+    CHAR(64, collation="utf8mb3_unicode_ci") in the id_useq_product column
+    of useq_product_metrics (UseqProductMetrics) due to invalid arguments
 """
 
 
@@ -1997,7 +2003,7 @@ class SeqProductIrodsLocations(Base):
         comment="A sequencing platform specific product id. For Illumina, data corresponds to the id_iseq_product column in the iseq_product_metrics table",
     )
     seq_platform_name: Mapped[str] = mapped_column(
-        Enum("Illumina", "PacBio", "ONT"),
+        Enum("Illumina", "PacBio", "ONT", "Elembio", "Ultimagen"),
         nullable=False,
         comment="Name of the sequencing platform used to produce raw data",
     )
@@ -2220,6 +2226,79 @@ class Study(Base):
     )
     useq_wafer: Mapped[list["UseqWafer"]] = relationship(
         "UseqWafer", back_populates="study"
+    )
+
+
+class UseqRunMetrics(Base):
+    __tablename__ = "useq_run_metrics"
+    __table_args__ = (
+        Index("useq_rf_name_index", "run_folder_name"),
+        Index("useq_run_archived_index", "run_archived"),
+    )
+
+    id_run: Mapped[int] = mapped_column(
+        INTEGER, primary_key=True, comment="NPG run identifier"
+    )
+    instrument_name: Mapped[str] = mapped_column(
+        CHAR(32, collation="utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Instrument name in NPG tracking system",
+    )
+    instrument_external_name: Mapped[str] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Name assigned to the instrument by the manufacturer",
+    )
+    instrument_model: Mapped[str] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), nullable=False, comment="Instrument model"
+    )
+    run_folder_name: Mapped[str] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Instrument run folder name",
+    )
+    cancelled: Mapped[int] = mapped_column(
+        TINYINT,
+        nullable=False,
+        server_default=text("'0'"),
+        comment="Boolean flag to indicate whether the run was failed in some way or its data has been discarded",
+    )
+    last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        comment="Date this record was created or changed",
+    )
+    ultimagen_Run_Id: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), comment="Ultimagen  RunID"
+    )
+    ultimagen_Library_Pool: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), comment="Ultimagen  Library_Pool"
+    )
+    run_priority: Mapped[Optional[int]] = mapped_column(TINYINT)
+    run_in_progress: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime, comment="Timestamp of run in progress status"
+    )
+    run_archived: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime,
+        comment="The date the run was released, ie QC-ed if applicable and fully archived",
+    )
+    qc_seq: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
+    )
+    num_reads: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="Number of reads for this wafer"
+    )
+    input_num_reads: Mapped[Optional[int]] = mapped_column(
+        BIGINT, comment="Number of input reads (before PF) for this wafer"
+    )
+    tags_decode_percent: Mapped[Optional[float]] = mapped_column(
+        FLOAT,
+        comment="An overall percent of pf reads assigned to expected barcodes and the control",
+    )
+
+    useq_product_metrics: Mapped[list["UseqProductMetrics"]] = relationship(
+        "UseqProductMetrics", back_populates="useq_run_metrics"
     )
 
 
@@ -3591,6 +3670,9 @@ class UseqWafer(Base):
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="useq_wafer")
     study: Mapped["Study"] = relationship("Study", back_populates="useq_wafer")
+    useq_product_metrics: Mapped[list["UseqProductMetrics"]] = relationship(
+        "UseqProductMetrics", back_populates="useq_wafer"
+    )
 
 
 class EseqProductMetrics(Base):
@@ -4059,6 +4141,106 @@ class PacBioProductMetrics(Base):
     )
     pac_bio_run: Mapped[Optional["PacBioRun"]] = relationship(
         "PacBioRun", back_populates="pac_bio_product_metrics"
+    )
+
+
+class UseqProductMetrics(Base):
+    __tablename__ = "useq_product_metrics"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["id_run"],
+            ["useq_run_metrics.id_run"],
+            ondelete="CASCADE",
+            name="useq_pr_metrics_run_fk",
+        ),
+        ForeignKeyConstraint(
+            ["id_useq_wafer_tmp"],
+            ["useq_wafer.id_useq_wafer_tmp"],
+            ondelete="SET NULL",
+            name="useq_pr_metrics_wafer_fk",
+        ),
+        Index("useq_pm_run_tag_index", "id_run", "tag_index"),
+        Index("useq_pm_seqcontrol_tag_index", "is_sequencing_control", "tag_index"),
+        Index("useq_pm_tagseq_index", "ultimagen_Index_Sequence"),
+        Index("useq_pr_metrics_wafer_fk", "id_useq_wafer_tmp"),
+        Index("useq_prm_product_unique", "id_useq_product", unique=True),
+        Index("useq_sample_name", "ultimagen_Sample_Id"),
+    )
+
+    id_useq_pr_metrics_tmp: Mapped[int] = mapped_column(
+        BIGINT,
+        primary_key=True,
+        comment="Internal to this database id, value can change",
+    )
+    id_run: Mapped[int] = mapped_column(
+        INTEGER, nullable=False, comment="NPG run identifier"
+    )
+    id_useq_product: Mapped[str] = mapped_column(
+        CHAR(64, collation="utf8mb3_unicode_ci"), nullable=False, comment="Product id"
+    )
+    last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        comment="Date this record was created or changed",
+    )
+    id_useq_wafer_tmp: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment='Foreign key, see "useq_wafer.id_useq_wafer_tmp"'
+    )
+    tag_index: Mapped[Optional[int]] = mapped_column(SMALLINT, comment="NPG tag index")
+    is_sequencing_control: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        server_default=text("'0'"),
+        comment="A boolean flag. If true, this is an internal control",
+    )
+    ultimagen_Index_Label: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), comment="Ultimagen barcode label"
+    )
+    ultimagen_Index_Sequence: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), comment="Ultimagen barcode sequence"
+    )
+    ultimagen_Sample_Id: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Sample ID used by Ultimagen Genomics in deplexing, see also ultimagen:Sample_ID iRODS metadata",
+    )
+    ultimagen_Library_Name: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Library name as given in Ultimagen Genomics manifest, see also ultimagen:Library_name iRODS metadata",
+    )
+    qc_seq: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
+    )
+    qc_lib: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        comment="Library QC outcome, a result of either manual or automatic assessment by core",
+    )
+    qc: Mapped[Optional[int]] = mapped_column(
+        TINYINT(1),
+        comment="Overall QC assessment outcome, a logical product (conjunction) of qc_seq and qc_lib values, defaults to the qc_seq value when qc_lib is not defined",
+    )
+    tag_decode_count: Mapped[Optional[int]] = mapped_column(
+        BIGINT,
+        comment="Number of reads on a wafer assigned to this library after deplexing",
+    )
+    tag_decode_percent: Mapped[Optional[float]] = mapped_column(
+        FLOAT,
+        comment="Percent of reads on a wafer, which is assigned to this library after deplexing",
+    )
+    q20_yield_kb: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Yield in KBs at and above Q20"
+    )
+    q30_yield_kb: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Yield in KBs at and above Q30"
+    )
+    total_yield_kb: Mapped[Optional[int]] = mapped_column(
+        INTEGER, comment="Overall sample yield in KBs"
+    )
+
+    useq_run_metrics: Mapped["UseqRunMetrics"] = relationship(
+        "UseqRunMetrics", back_populates="useq_product_metrics"
+    )
+    useq_wafer: Mapped[Optional["UseqWafer"]] = relationship(
+        "UseqWafer", back_populates="useq_product_metrics"
     )
 
 

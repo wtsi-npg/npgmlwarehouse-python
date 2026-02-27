@@ -63,7 +63,7 @@ def insert_from_yaml(session: Session, dir_path: str | Path, schema_path: str):
     session.commit()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def mlwh_session():
     """
     A fixture that populates a MySQL database

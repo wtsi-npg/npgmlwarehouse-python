@@ -35,8 +35,7 @@ test = [
     "pytest-it",
     "sqlalchemy-utils",
     "pyyaml",
-    "cryptography",
-    "pymysql",
+    "pymysql[rsa]",
 ]
 
 [project.scripts]

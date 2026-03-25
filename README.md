@@ -1,8 +1,9 @@
 # npgmlwarehouse-python
+
 ORM and access layer for the existing MySQL multi-lims warehouse
 
-This package contains an ORM for an existing multi-lims warehouse database schema, 
-which hosts information about runs, samples and studies. A Perl ORM for the same schema 
+This package contains an ORM for an existing multi-lims warehouse database schema,
+which hosts information about runs, samples and studies. A Perl ORM for the same schema
 is defined in [ml_warehouse](https://github.com/wtsi-npg/ml_warehouse).
 Migrations for that schema are also tracked in the Perl package.
 
@@ -14,9 +15,9 @@ Currently, record creation from this code is performed only on the iRODS locatio
 `seq_product_irods_locations`. We allow for vendor-specific `sqlalchemy` code where trying
 to be vendor-agnostic would result in implementing a large volume of custom code and tests.
 
-This ORM has been auto-generated with [`sqlacodegen 3.1.1`](https://pypi.org/project/sqlacodegen/3.1.1/) 
+This ORM has been auto-generated with [`sqlacodegen 4.0.2`](https://pypi.org/project/sqlacodegen/4.0.2/) with post-generation manual modification to deal with awkward bits.
 
-```
+```bash
 sqlacodegen --generator declarative mysql+pymysql://user:pass@host:port/dbname > src/npgmlwarehouse/db/schema.py
 ```
 
@@ -29,7 +30,16 @@ Unit tests are performed against an instance of MySQL server.
 
 Installation and testing:
 
+Either create a MySQL instance (via container `mysql:8.0.35`) or use a shared NPG MySQL testing instance.
+If using using a container, set up a test DB for the units tests to write to. Credentials should match those found in `./tests/config/testdb.json`
+
+```sql
+set global sql_mode = 'STRICT_TRANS_TABLES';
+CREATE DATABASE test;
+ALTER DATABASE test CHARACTER SET latin1 COLLATE latin1_swedish_ci;
 ```
+
+```bash
 pip install .[test]
 pytest
 ```

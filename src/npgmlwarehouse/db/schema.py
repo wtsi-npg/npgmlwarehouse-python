@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2025 Genome Research Ltd. All rights reserved.
+# Copyright © 2025, 2026 Genome Research Ltd. All rights reserved.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ import decimal
 from typing import Optional
 
 from sqlalchemy import (
+    CHAR,
     DECIMAL,
     JSON,
     TIMESTAMP,
@@ -36,11 +37,11 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Table,
+    Text,
     text,
 )
 from sqlalchemy.dialects.mysql import (
     BIGINT,
-    CHAR,
     DATETIME,
     DOUBLE,
     ENUM,
@@ -48,7 +49,6 @@ from sqlalchemy.dialects.mysql import (
     INTEGER,
     MEDIUMTEXT,
     SMALLINT,
-    TEXT,
     TINYINT,
     VARCHAR,
 )
@@ -64,12 +64,13 @@ Listing of manual changes to the generated code:
     with the import from sqlalchemy.dialects.mysql
   - Single quotes for 'CURRENT_TIMESTAMP' in t_iseq_heron_product_metrics_view
     have been removed due to 'Invalid default value' error during CREATE.
-  - CHAR(32, "utf8mb3_unicode_ci") has been replaced by
+  - CHAR(32, charset="utf8mb3", collation="utf8mb3_unicode_ci") has been replaced by
     CHAR(32, collation="utf8mb3_unicode_ci") in the instrument_name column
     of useq_run_metrics (UseqRunMetrics) due to invalid arguments
-  - CHAR(64, "utf8mb3_unicode_ci") has been replaced by
+  - CHAR(64, charset="utf8mb3", collation="utf8mb3_unicode_ci") has been replaced by
     CHAR(64, collation="utf8mb3_unicode_ci") in the id_useq_product column
     of useq_product_metrics (UseqProductMetrics) due to invalid arguments
+  - Removed all change to enums that defined table-centric enum definitions
 """
 
 
@@ -82,36 +83,42 @@ class Aliquot(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The LIMS system that the aliquot was created in",
     )
     aliquot_uuid: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The UUID of the aliquot in the LIMS system",
     )
     aliquot_type: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="The type of the aliquot"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The type of the aliquot",
     )
     source_type: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="The type of the source of the aliquot"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The type of the source of the aliquot",
     )
     source_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="The barcode of the source of the aliquot"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The barcode of the source of the aliquot",
     )
     sample_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The name of the sample that the aliquot was created from",
     )
     used_by_type: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The type of the entity that the aliquot is used by",
     )
     used_by_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the entity that the aliquot is used by",
     )
@@ -162,21 +169,31 @@ class CgapAnalyte(Base):
     )
 
     cgap_analyte_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    cell_line_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    destination: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    slot_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
+    cell_line_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    destination: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    slot_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
     release_date: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    labware_barcode: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
-    cell_state: Mapped[str] = mapped_column(VARCHAR(40), nullable=False)
-    jobs: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
+    labware_barcode: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_state: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    jobs: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
     passage_number: Mapped[Optional[int]] = mapped_column(Integer)
-    project: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    project: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
 
 
 class CgapBiomaterial(Base):
@@ -187,14 +204,20 @@ class CgapBiomaterial(Base):
     )
 
     cgap_biomaterial_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    donor_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    biomaterial_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    donor_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(38))
-    donor_name: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
+    donor_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    biomaterial_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    donor_accession_number: Mapped[Optional[str]] = mapped_column(
+        String(38, "utf8mb3_unicode_ci")
+    )
+    donor_name: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
 
 
 class CgapConjuredLabware(Base):
@@ -210,21 +233,31 @@ class CgapConjuredLabware(Base):
     )
 
     cgap_conjured_labware_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    barcode: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    cell_line_long_name: Mapped[str] = mapped_column(VARCHAR(48), nullable=False)
-    cell_line_uuid: Mapped[str] = mapped_column(VARCHAR(38), nullable=False)
+    barcode: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_long_name: Mapped[str] = mapped_column(
+        String(48, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_uuid: Mapped[str] = mapped_column(
+        String(38, "utf8mb3_unicode_ci"), nullable=False
+    )
     passage_number: Mapped[int] = mapped_column(Integer, nullable=False)
     conjure_date: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    labware_state: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
-    slot_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    fate: Mapped[Optional[str]] = mapped_column(VARCHAR(40))
-    project: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    labware_state: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
+    slot_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    fate: Mapped[Optional[str]] = mapped_column(String(40, "utf8mb3_unicode_ci"))
+    project: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
 
 
 class CgapDestruction(Base):
@@ -237,17 +270,23 @@ class CgapDestruction(Base):
     )
 
     cgap_destruction_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database. Value can change.",
     )
-    barcode: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    cell_line_long_name: Mapped[str] = mapped_column(VARCHAR(48), nullable=False)
+    barcode: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_long_name: Mapped[str] = mapped_column(
+        String(48, "utf8mb3_unicode_ci"), nullable=False
+    )
     destroyed: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    cell_state: Mapped[str] = mapped_column(VARCHAR(40), nullable=False)
-    project: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    cell_state: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    project: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
 
 
 class CgapHeron(Base):
@@ -265,30 +304,48 @@ class CgapHeron(Base):
     )
 
     cgap_heron_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    container_barcode: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    supplier_sample_id: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    position: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
-    sample_type: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
+    container_barcode: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    supplier_sample_id: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    position: Mapped[str] = mapped_column(
+        String(8, "utf8mb3_unicode_ci"), nullable=False
+    )
+    sample_type: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
     release_time: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    study: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    destination: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    sample_state: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    tube_barcode: Mapped[Optional[str]] = mapped_column(VARCHAR(32))
+    study: Mapped[str] = mapped_column(String(32, "utf8mb3_unicode_ci"), nullable=False)
+    destination: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    sample_state: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    tube_barcode: Mapped[Optional[str]] = mapped_column(
+        String(32, "utf8mb3_unicode_ci")
+    )
     wrangled: Mapped[Optional[datetime.datetime]] = mapped_column(TIMESTAMP)
-    lysis_buffer: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
+    lysis_buffer: Mapped[Optional[str]] = mapped_column(
+        String(64, "utf8mb3_unicode_ci")
+    )
     priority: Mapped[Optional[int]] = mapped_column(TINYINT)
     sample_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(64),
+        String(64, "utf8mb3_unicode_ci"),
         comment="The COG-UK barcode of a sample or the mixtio barcode of a control",
     )
     control_type: Mapped[Optional[str]] = mapped_column(ENUM("Positive", "Negative"))
-    control_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(32))
+    control_accession_number: Mapped[Optional[str]] = mapped_column(
+        String(32, "utf8mb3_unicode_ci")
+    )
 
 
 class CgapLineIdentifier(Base):
@@ -301,16 +358,26 @@ class CgapLineIdentifier(Base):
     )
 
     cgap_line_identifier_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    line_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    friendly_name: Mapped[str] = mapped_column(VARCHAR(48), nullable=False)
-    biomaterial_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(38))
-    direct_parent_uuid: Mapped[Optional[str]] = mapped_column(VARCHAR(36))
-    project: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    line_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    friendly_name: Mapped[str] = mapped_column(
+        String(48, "utf8mb3_unicode_ci"), nullable=False
+    )
+    biomaterial_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    accession_number: Mapped[Optional[str]] = mapped_column(
+        String(38, "utf8mb3_unicode_ci")
+    )
+    direct_parent_uuid: Mapped[Optional[str]] = mapped_column(
+        String(36, "utf8mb3_unicode_ci")
+    )
+    project: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
 
 
 class CgapOrganoidsConjuredLabware(Base):
@@ -324,19 +391,27 @@ class CgapOrganoidsConjuredLabware(Base):
     )
 
     cgap_organoids_conjured_labware_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    barcode: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
-    cell_line_long_name: Mapped[str] = mapped_column(VARCHAR(48), nullable=False)
-    cell_line_uuid: Mapped[str] = mapped_column(VARCHAR(38), nullable=False)
+    barcode: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_long_name: Mapped[str] = mapped_column(
+        String(48, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_uuid: Mapped[str] = mapped_column(
+        String(38, "utf8mb3_unicode_ci"), nullable=False
+    )
     passage_number: Mapped[int] = mapped_column(Integer, nullable=False)
     conjure_date: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    labware_state: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
-    fate: Mapped[Optional[str]] = mapped_column(VARCHAR(40))
+    labware_state: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
+    fate: Mapped[Optional[str]] = mapped_column(String(40, "utf8mb3_unicode_ci"))
 
 
 class CgapRelease(Base):
@@ -349,24 +424,32 @@ class CgapRelease(Base):
     )
 
     cgap_release_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    barcode: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
-    cell_line_long_name: Mapped[str] = mapped_column(VARCHAR(48), nullable=False)
-    cell_line_uuid: Mapped[str] = mapped_column(VARCHAR(38), nullable=False)
-    goal: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    jobs: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    user: Mapped[str] = mapped_column(VARCHAR(6), nullable=False)
+    barcode: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_long_name: Mapped[str] = mapped_column(
+        String(48, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cell_line_uuid: Mapped[str] = mapped_column(
+        String(38, "utf8mb3_unicode_ci"), nullable=False
+    )
+    goal: Mapped[str] = mapped_column(String(64, "utf8mb3_unicode_ci"), nullable=False)
+    jobs: Mapped[str] = mapped_column(String(64, "utf8mb3_unicode_ci"), nullable=False)
+    user: Mapped[str] = mapped_column(String(6, "utf8mb3_unicode_ci"), nullable=False)
     release_date: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
-    cell_state: Mapped[str] = mapped_column(VARCHAR(40), nullable=False)
+    cell_state: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
     passage_number: Mapped[int] = mapped_column(Integer, nullable=False)
-    destination: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
-    fate: Mapped[Optional[str]] = mapped_column(VARCHAR(40))
-    project: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
+    destination: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
+    fate: Mapped[Optional[str]] = mapped_column(String(40, "utf8mb3_unicode_ci"))
+    project: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
 
 
 class CgapSupplierBarcode(Base):
@@ -377,12 +460,16 @@ class CgapSupplierBarcode(Base):
     )
 
     cgap_supplier_barcode_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id. Value can change.",
     )
-    biomaterial_uuid: Mapped[str] = mapped_column(VARCHAR(36), nullable=False)
-    supplier_barcode: Mapped[str] = mapped_column(VARCHAR(20), nullable=False)
+    biomaterial_uuid: Mapped[str] = mapped_column(
+        String(36, "utf8mb3_unicode_ci"), nullable=False
+    )
+    supplier_barcode: Mapped[str] = mapped_column(
+        String(20, "utf8mb3_unicode_ci"), nullable=False
+    )
     date: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("'0000-00-00 00:00:00'")
     )
@@ -405,10 +492,10 @@ class Comments(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10), nullable=False, comment="ID of the LIMS"
+        String(10, "utf8mb3_unicode_ci"), nullable=False, comment="ID of the LIMS"
     )
     comment_type: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Type of the comment e.g., under_representation",
     )
@@ -423,16 +510,19 @@ class Comments(Base):
         comment="The date the comment was last updated in LIMS.",
     )
     comment_value: Mapped[Optional[str]] = mapped_column(
-        TEXT, comment="Value of the comment corresponding to the comment_type"
+        Text(collation="utf8mb3_unicode_ci"),
+        comment="Value of the comment corresponding to the comment_type",
     )
     batch_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Corresponds to id_flowcell_lims in iseq_flowcell table."
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Corresponds to id_flowcell_lims in iseq_flowcell table.",
     )
     position: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Position of the lane in the flowcell"
+        SMALLINT(unsigned=True), comment="Position of the lane in the flowcell"
     )
     tag_index: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Index of the tag (check iseq_flowcell tag_index column)"
+        SMALLINT(unsigned=True),
+        comment="Index of the tag (check iseq_flowcell tag_index column)",
     )
 
 
@@ -447,22 +537,22 @@ class EseqRun(Base):
     )
 
     id_eseq_run_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     folder_name: Mapped[str] = mapped_column(
-        VARCHAR(200),
+        VARCHAR(200, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Run folder name created by the Element Biosciences instrument",
     )
     run_name: Mapped[str] = mapped_column(
-        VARCHAR(100),
+        VARCHAR(100, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Run name as recorded in RunParameters.json file",
     )
     flowcell_id: Mapped[str] = mapped_column(
-        VARCHAR(100),
+        VARCHAR(100, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Flowcell ID as recorded in RunParameters.json file",
     )
@@ -472,7 +562,8 @@ class EseqRun(Base):
         comment="The content of RunParameters.json file in the run folder",
     )
     run_type: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(100), comment="Run type as recorded in RunParameters.json file"
+        VARCHAR(100, collation="utf8mb3_unicode_ci"),
+        comment="Run type as recorded in RunParameters.json file",
     )
     date_started: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Run date as recorded in RunParameters.json file"
@@ -489,7 +580,8 @@ class EseqRun(Base):
         comment="The content of RunStats.json file produced by bases2fastq, reserved for possible future use.",
     )
     outcome: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(256), comment="Run outcome as recorded in RunUploaded.json file"
+        VARCHAR(256, collation="utf8mb3_unicode_ci"),
+        comment="Run outcome as recorded in RunUploaded.json file",
     )
 
 
@@ -501,33 +593,39 @@ class EseqRunLaneMetrics(Base):
     )
 
     id_run: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="NPG run identifier"
+        INTEGER(unsigned=True), primary_key=True, comment="NPG run identifier"
     )
     lane: Mapped[int] = mapped_column(
-        SMALLINT, primary_key=True, comment="Flowcell lane number"
+        SMALLINT(unsigned=True), primary_key=True, comment="Flowcell lane number"
     )
     run_folder_name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Instrument run folder name"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Instrument run folder name",
     )
     instrument_name: Mapped[str] = mapped_column(
-        CHAR(32), nullable=False, comment="Instrument name in NPG tracking system"
+        CHAR(32, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Instrument name in NPG tracking system",
     )
     instrument_external_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Name assigned to the instrument by the manufacturer",
     )
     instrument_model: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Instrument model"
+        String(255, "utf8mb3_unicode_ci"), nullable=False, comment="Instrument model"
     )
     cancelled: Mapped[int] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         nullable=False,
         server_default=text("'0'"),
         comment="Boolean flag to indicate whether the run was failed in some way or its data has been discarded",
     )
     cycles: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment="Actual number of cycles excluding index reads"
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment="Actual number of cycles excluding index reads",
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime,
@@ -535,15 +633,15 @@ class EseqRunLaneMetrics(Base):
         comment="Date this record was created or changed",
     )
     flowcell_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Manufacturer flowcell barcode"
+        String(255, "utf8mb3_unicode_ci"), comment="Manufacturer flowcell barcode"
     )
     instrument_side: Mapped[Optional[str]] = mapped_column(
-        CHAR(1), comment="Instrument side (A or B)"
+        CHAR(1, "utf8mb3_unicode_ci"), comment="Instrument side (A or B)"
     )
     paired_read: Mapped[Optional[int]] = mapped_column(
-        TINYINT, server_default=text("'0'")
+        TINYINT(unsigned=True), server_default=text("'0'")
     )
-    run_priority: Mapped[Optional[int]] = mapped_column(TINYINT)
+    run_priority: Mapped[Optional[int]] = mapped_column(TINYINT(unsigned=True))
     run_started: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run started status"
     )
@@ -563,10 +661,10 @@ class EseqRunLaneMetrics(Base):
         comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
     )
     num_polonies: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="Number of polonies (reads) for this lane"
+        BIGINT(unsigned=True), comment="Number of polonies (reads) for this lane"
     )
     tags_decode_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="An overall percent of polonies (reads) assigned to expected barcodes",
     )
 
@@ -594,7 +692,7 @@ class IseqExternalProductMetrics(Base):
     )
 
     id_iseq_ext_pr_metrics_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
@@ -619,10 +717,12 @@ class IseqExternalProductMetrics(Base):
         comment="Datetime this record was created or changed",
     )
     supplier_sample_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sample name given by the supplier, as recorded by WSI"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="Sample name given by the supplier, as recorded by WSI",
     )
     plate_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Stock plate barcode, as recorded by WSI"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="Stock plate barcode, as recorded by WSI",
     )
     library_id: Mapped[Optional[int]] = mapped_column(
         Integer, comment="WSI library identifier"
@@ -640,11 +740,12 @@ class IseqExternalProductMetrics(Base):
         )
     )
     id_run: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="NPG run identifier, defined where the product corresponds to a single line",
     )
     id_iseq_product: Mapped[Optional[str]] = mapped_column(
-        CHAR(64), comment="product id"
+        String(64, collation="utf8mb3_unicode_ci"),
+        comment="product id",
     )
     iseq_composition_tmp: Mapped[Optional[str]] = mapped_column(
         String(600),
@@ -724,10 +825,10 @@ class IseqExternalProductMetrics(Base):
         comment="Annotation regarding data provenance, i.e. is sequence data from first pass, re-run, top-up, etc.",
     )
     min_read_length: Mapped[Optional[int]] = mapped_column(
-        TINYINT, comment="Minimum read length observed in the data file"
+        TINYINT(unsigned=True), comment="Minimum read length observed in the data file"
     )
     target_autosome_coverage_threshold: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         server_default=text("'15'"),
         comment="Target autosome coverage threshold, defaults to 15",
     )
@@ -742,13 +843,14 @@ class IseqExternalProductMetrics(Base):
         )
     )
     verify_bam_id_score: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="FREEMIX value of sample contamination levels as a fraction"
+        FLOAT(unsigned=True),
+        comment="FREEMIX value of sample contamination levels as a fraction",
     )
     verify_bam_id_score_assessment: Mapped[Optional[str]] = mapped_column(
         CHAR(4), comment='"PASS" if verify_bam_id_score > 0.01, "FAIL" otherwise'
     )
     double_error_fraction: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Fraction of marker pairs with two read pairs evidencing parity and non-parity, may only be calculated if 1% <= verify_bam_id_score < 5%",
     )
     contamination_assessment: Mapped[Optional[str]] = mapped_column(
@@ -756,28 +858,32 @@ class IseqExternalProductMetrics(Base):
         comment='"PASS" or "FAIL" based on verify_bam_id_score_assessment and double_error_fraction < 0.2%',
     )
     yield_whole_genome: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Sequence data quantity (Gb) excluding duplicate reads, adaptors, overlapping bases from reads on the same fragment, soft-clipped bases",
     )
     yield_: Mapped[Optional[float]] = mapped_column(
         "yield",
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Sequence data quantity (Gb) excluding duplicate reads, adaptors, overlapping bases from reads on the same fragment, soft-clipped bases, non-N autosome only",
     )
     yield_q20: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Yield in bases at or above Q20 filtered in the same way as the yield column values",
     )
     yield_q30: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Yield in bases at or above Q30 filtered in the same way as the yield column values",
     )
     num_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Number of reads filtered in the same way as the yield column values",
     )
-    gc_fraction_forward_read: Mapped[Optional[float]] = mapped_column(FLOAT)
-    gc_fraction_reverse_read: Mapped[Optional[float]] = mapped_column(FLOAT)
+    gc_fraction_forward_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(unsigned=True)
+    )
+    gc_fraction_reverse_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(unsigned=True)
+    )
     adapter_contamination: Mapped[Optional[str]] = mapped_column(
         String(255),
         comment='The maximum over adapters and cycles in reads/fragments as a fraction per file and RG. Values for first and second reads separated with ",", and values for individual files separated with "/". e.g. "0.1/0.1/0.1/0.1,0.1/0.1/0.1/0.1"',
@@ -787,25 +893,25 @@ class IseqExternalProductMetrics(Base):
         comment='"PASS", "WARN", "FAIL" per read and file. Multiple values are represented as forward slash-separated array of strings with a comma separating entries for paired-end 1 and 2 reads e.g. "PASS/PASS/WARN/PASS,PASS/PASS/WARN/PASS"',
     )
     pre_adapter_min_total_qscore: Mapped[Optional[int]] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         comment="Minimum of TOTAL_QSCORE values in PreAdapter report from CollectSequencingArtifactMetrics",
     )
     ref_bias_min_total_qscore: Mapped[Optional[int]] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         comment="Minimum of TOTAL_QSCORE values in BaitBias report from CollectSequencingArtifactMetrics",
     )
     target_proper_pair_mapped_reads_fraction: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Fraction of properly paired mapped reads filtered in the same way as the yield column values",
     )
     target_proper_pair_mapped_reads_assessment: Mapped[Optional[str]] = mapped_column(
         CHAR(4),
         comment='"PASS" if target_proper_pair_mapped_reads_fraction > 0.95, "FAIL" otherwise',
     )
-    insert_size_mean: Mapped[Optional[float]] = mapped_column(FLOAT)
-    insert_size_std: Mapped[Optional[float]] = mapped_column(FLOAT)
+    insert_size_mean: Mapped[Optional[float]] = mapped_column(FLOAT(unsigned=True))
+    insert_size_std: Mapped[Optional[float]] = mapped_column(FLOAT(unsigned=True))
     sequence_error_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Reported by samtools, as a fraction"
+        FLOAT(unsigned=True), comment="Reported by samtools, as a fraction"
     )
     basic_statistics_assessement: Mapped[Optional[str]] = mapped_column(
         String(255),
@@ -847,7 +953,7 @@ class IseqExternalProductMetrics(Base):
         CHAR(4), comment='FastQC "PASS" or "FAIL"'
     )
     nrd: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Sample discordance levels at non-reference genotypes as a fraction",
     )
     nrd_assessment: Mapped[Optional[str]] = mapped_column(
@@ -899,11 +1005,15 @@ class IseqHeronClimbStatus(Base):
         Index("ihcs_supplier_sample_name", "supplier_sample_name"),
     )
 
-    id: Mapped[int] = mapped_column(INTEGER, primary_key=True)
-    id_iseq_product: Mapped[Optional[str]] = mapped_column(CHAR(64))
-    supplier_sample_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    id: Mapped[int] = mapped_column(INTEGER(unsigned=True), primary_key=True)
+    id_iseq_product: Mapped[Optional[str]] = mapped_column(
+        CHAR(64, "utf8mb3_unicode_ci")
+    )
+    supplier_sample_name: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     climb_upload: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
-    folder_name: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
+    folder_name: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
     climb_biosample_metadata_upload: Mapped[Optional[datetime.datetime]] = (
         mapped_column(DateTime)
     )
@@ -911,7 +1021,9 @@ class IseqHeronClimbStatus(Base):
     climb_sequence_metadata_upload: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime
     )
-    anonymous_sample_id: Mapped[Optional[str]] = mapped_column(VARCHAR(15))
+    anonymous_sample_id: Mapped[Optional[str]] = mapped_column(
+        String(15, "utf8mb3_unicode_ci")
+    )
 
 
 class IseqHeronProductMetrics(Base):
@@ -925,12 +1037,12 @@ class IseqHeronProductMetrics(Base):
     )
 
     id_iseq_hrpr_metrics_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_iseq_product: Mapped[str] = mapped_column(
-        CHAR(64),
+        CHAR(64, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Product id, a foreign key into iseq_product_metrics table",
     )
@@ -944,36 +1056,44 @@ class IseqHeronProductMetrics(Base):
         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
         comment="Datetime this record was created or changed",
     )
-    id_run: Mapped[Optional[int]] = mapped_column(INTEGER, comment="Run id")
+    id_run: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True), comment="Run id"
+    )
     supplier_sample_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sample name given by the supplier, as recorded by WSI"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Sample name given by the supplier, as recorded by WSI",
     )
     pp_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(40),
+        String(40, "utf8mb3_unicode_ci"),
         server_default=text("'ncov2019-artic-nf'"),
         comment="The name of the pipeline that produced the QC metric",
     )
     pp_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(40),
+        String(40, "utf8mb3_unicode_ci"),
         comment="The version of the pipeline specified in the pp_name column",
     )
     pp_repo_url: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="URL of the VCS repository for this pipeline"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="URL of the VCS repository for this pipeline",
     )
     artic_qc_outcome: Mapped[Optional[str]] = mapped_column(
-        CHAR(15), comment='Artic pipeline QC outcome, "TRUE", "FALSE" or a NULL value'
+        CHAR(15, "utf8mb3_unicode_ci"),
+        comment='Artic pipeline QC outcome, "TRUE", "FALSE" or a NULL value',
     )
     climb_upload: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Datetime files for this sample were uploaded to CLIMB"
     )
     cog_sample_meta: Mapped[Optional[int]] = mapped_column(
-        TINYINT, comment="A Boolean flag to mark sample metadata upload to COG"
+        TINYINT(unsigned=True),
+        comment="A Boolean flag to mark sample metadata upload to COG",
     )
     path_root: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The uploaded files path root for the entity"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The uploaded files path root for the entity",
     )
     ivar_md: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="ivar minimum depth used in generating the default consensus"
+        SMALLINT(unsigned=True),
+        comment="ivar minimum depth used in generating the default consensus",
     )
     pct_N_bases: Mapped[Optional[float]] = mapped_column(
         Float, comment="Percent of N bases"
@@ -982,30 +1102,33 @@ class IseqHeronProductMetrics(Base):
         Float, comment="Percent of covered bases"
     )
     longest_no_N_run: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Longest consensus data stretch without N"
+        SMALLINT(unsigned=True), comment="Longest consensus data stretch without N"
     )
     ivar_amd: Mapped[Optional[int]] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         comment="ivar minimum depth used in generating the additional consensus",
     )
     pct_N_bases_amd: Mapped[Optional[float]] = mapped_column(
         Float, comment="Percent of N bases in the additional consensus"
     )
     longest_no_N_run_amd: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Longest data stretch without N in the additional consensus"
+        SMALLINT(unsigned=True),
+        comment="Longest data stretch without N in the additional consensus",
     )
     num_aligned_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="Number of aligned filtered reads"
+        BIGINT(unsigned=True), comment="Number of aligned filtered reads"
     )
 
 
 t_iseq_heron_product_metrics_view = Table(
     "iseq_heron_product_metrics_view",
     Base.metadata,
-    Column("id_iseq_hrpr_metrics_tmp", BIGINT, server_default=text("'0'")),
+    Column(
+        "id_iseq_hrpr_metrics_tmp", BIGINT(unsigned=True), server_default=text("'0'")
+    ),
     Column("created", DateTime, server_default=text("CURRENT_TIMESTAMP")),
     Column("last_changed", DateTime, server_default=text("CURRENT_TIMESTAMP")),
-    Column("id_run", INTEGER),
+    Column("id_run", INTEGER(unsigned=True)),
     Column("id_iseq_product", CHAR(64)),
     Column("supplier_sample_name", String(255)),
     Column("pp_name", String(40), server_default=text("'ncov2019-artic-nf'")),
@@ -1015,14 +1138,14 @@ t_iseq_heron_product_metrics_view = Table(
     Column("climb_upload", DateTime),
     Column("cog_sample_meta", TINYINT(1)),
     Column("path_root", String(255)),
-    Column("ivar_md", SMALLINT),
+    Column("ivar_md", SMALLINT(unsigned=True)),
     Column("pct_N_bases", Float),
     Column("pct_covered_bases", Float),
-    Column("longest_no_N_run", SMALLINT),
-    Column("ivar_amd", SMALLINT),
+    Column("longest_no_N_run", SMALLINT(unsigned=True)),
+    Column("ivar_amd", SMALLINT(unsigned=True)),
     Column("pct_N_bases_amd", Float),
-    Column("longest_no_N_run_amd", SMALLINT),
-    Column("num_aligned_reads", BIGINT),
+    Column("longest_no_N_run_amd", SMALLINT(unsigned=True)),
+    Column("num_aligned_reads", BIGINT(unsigned=True)),
 )
 
 
@@ -1037,31 +1160,31 @@ class IseqRun(Base):
     )
 
     id_run: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="NPG run identifier"
+        INTEGER(unsigned=True), primary_key=True, comment="NPG run identifier"
     )
     id_flowcell_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="LIMS specific flowcell id"
+        String(20, "utf8mb3_unicode_ci"), comment="LIMS specific flowcell id"
     )
     folder_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(64), comment="Runfolder name"
+        String(64, "utf8mb3_unicode_ci"), comment="Runfolder name"
     )
     rp__read1_number_of_cycles: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Read 1 number of cycles"
+        SMALLINT(unsigned=True), comment="Read 1 number of cycles"
     )
     rp__read2_number_of_cycles: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Read 2 number of cycles"
+        SMALLINT(unsigned=True), comment="Read 2 number of cycles"
     )
     rp__flow_cell_mode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(4), comment="Flowcell mode"
+        String(4, "utf8mb3_unicode_ci"), comment="Flowcell mode"
     )
     rp__workflow_type: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(16), comment="Workflow type"
+        String(16, "utf8mb3_unicode_ci"), comment="Workflow type"
     )
     rp__flow_cell_consumable_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(4), comment="Flowcell consumable version"
+        String(4, "utf8mb3_unicode_ci"), comment="Flowcell consumable version"
     )
     rp__sbs_consumable_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(4), comment="Sbs consumable version"
+        String(4, "utf8mb3_unicode_ci"), comment="Sbs consumable version"
     )
 
 
@@ -1074,23 +1197,23 @@ class IseqRunLaneMetrics(Base):
     )
 
     id_run: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="NPG run identifier"
+        INTEGER(unsigned=True), primary_key=True, comment="NPG run identifier"
     )
     position: Mapped[int] = mapped_column(
-        SMALLINT, primary_key=True, comment="Flowcell lane number"
+        SMALLINT(unsigned=True), primary_key=True, comment="Flowcell lane number"
     )
     paired_read: Mapped[int] = mapped_column(
-        TINYINT, nullable=False, server_default=text("'0'")
+        TINYINT(unsigned=True), nullable=False, server_default=text("'0'")
     )
-    cycles: Mapped[int] = mapped_column(INTEGER, nullable=False)
+    cycles: Mapped[int] = mapped_column(INTEGER(unsigned=True), nullable=False)
     cancelled: Mapped[int] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         nullable=False,
         server_default=text("'0'"),
         comment="Boolen flag to indicate whether the run was cancelled",
     )
     flowcell_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(15),
+        String(15, "utf8mb3_unicode_ci"),
         comment="Manufacturer flowcell barcode or other identifier as recorded by NPG",
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
@@ -1102,16 +1225,22 @@ class IseqRunLaneMetrics(Base):
         TINYINT(1),
         comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
     )
-    instrument_name: Mapped[Optional[str]] = mapped_column(CHAR(32))
-    instrument_external_name: Mapped[Optional[str]] = mapped_column(
-        CHAR(10), comment="Name assigned to the instrument by the manufacturer"
+    instrument_name: Mapped[Optional[str]] = mapped_column(
+        CHAR(32, "utf8mb3_unicode_ci")
     )
-    instrument_model: Mapped[Optional[str]] = mapped_column(CHAR(64))
+    instrument_external_name: Mapped[Optional[str]] = mapped_column(
+        CHAR(10, "utf8mb3_unicode_ci"),
+        comment="Name assigned to the instrument by the manufacturer",
+    )
+    instrument_model: Mapped[Optional[str]] = mapped_column(
+        CHAR(64, "utf8mb3_unicode_ci")
+    )
     instrument_side: Mapped[Optional[str]] = mapped_column(
-        CHAR(1), comment="Illumina instrument side (A or B), if appropriate"
+        CHAR(1, "utf8mb3_unicode_ci"),
+        comment="Illumina instrument side (A or B), if appropriate",
     )
     workflow_type: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="Illumina instrument workflow type"
+        String(20, "utf8mb3_unicode_ci"), comment="Illumina instrument workflow type"
     )
     run_pending: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run pending status"
@@ -1125,84 +1254,106 @@ class IseqRunLaneMetrics(Base):
     qc_complete: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of qc complete status"
     )
-    pf_cluster_count: Mapped[Optional[int]] = mapped_column(BIGINT)
-    raw_cluster_count: Mapped[Optional[int]] = mapped_column(BIGINT)
+    pf_cluster_count: Mapped[Optional[int]] = mapped_column(BIGINT(unsigned=True))
+    raw_cluster_count: Mapped[Optional[int]] = mapped_column(BIGINT(unsigned=True))
     raw_cluster_density: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE(12, 3)
+        DOUBLE(12, 3, unsigned=True)
     )
-    pf_cluster_density: Mapped[Optional[decimal.Decimal]] = mapped_column(DOUBLE(12, 3))
-    pf_bases: Mapped[Optional[int]] = mapped_column(BIGINT)
-    q20_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q20_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q30_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q30_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q40_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q40_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    tags_decode_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    tags_decode_cv: Mapped[Optional[float]] = mapped_column(FLOAT(6, 2))
+    pf_cluster_density: Mapped[Optional[decimal.Decimal]] = mapped_column(
+        DOUBLE(12, 3, unsigned=True)
+    )
+    pf_bases: Mapped[Optional[int]] = mapped_column(BIGINT(unsigned=True))
+    q20_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q20_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q30_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q30_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q40_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q40_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    tags_decode_percent: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
+    tags_decode_cv: Mapped[Optional[float]] = mapped_column(FLOAT(6, 2, unsigned=True))
     unexpected_tags_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2),
+        FLOAT(5, 2, unsigned=True),
         comment="tag0_perfect_match_reads as a percentage of total_lane_reads",
     )
     tag_hops_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Percentage tag hops for dual index runs"
+        FLOAT(unsigned=True), comment="Percentage tag hops for dual index runs"
     )
     tag_hops_power: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Power to detect tag hops for dual index runs"
+        FLOAT(unsigned=True), comment="Power to detect tag hops for dual index runs"
     )
     run_priority: Mapped[Optional[int]] = mapped_column(
         TINYINT,
         comment="Sequencing lane level run priority, a result of either manual or default value set by core",
     )
     interop_cluster_count_total: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Total cluster count for this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_count_mean: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE,
+        DOUBLE(unsigned=True),
         comment="Total cluster count, mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_count_stdev: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE, comment="Standard deviation value for interop_cluster_count_mean"
+        DOUBLE(unsigned=True),
+        comment="Standard deviation value for interop_cluster_count_mean",
     )
     interop_cluster_count_pf_total: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Purity-filtered cluster count for this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_count_pf_mean: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE,
+        DOUBLE(unsigned=True),
         comment="Purity-filtered cluster count, mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_count_pf_stdev: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE, comment="Standard deviation value for interop_cluster_count_pf_mean"
+        DOUBLE(unsigned=True),
+        comment="Standard deviation value for interop_cluster_count_pf_mean",
     )
     interop_cluster_density_mean: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE,
+        DOUBLE(unsigned=True),
         comment="Cluster density, mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_density_stdev: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE, comment="Standard deviation value for interop_cluster_density_mean"
+        DOUBLE(unsigned=True),
+        comment="Standard deviation value for interop_cluster_density_mean",
     )
     interop_cluster_density_pf_mean: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE,
+        DOUBLE(unsigned=True),
         comment="Purity-filtered cluster density, mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_density_pf_stdev: Mapped[Optional[decimal.Decimal]] = mapped_column(
-        DOUBLE, comment="Standard deviation value for interop_cluster_density_pf_mean"
+        DOUBLE(unsigned=True),
+        comment="Standard deviation value for interop_cluster_density_pf_mean",
     )
     interop_cluster_pf_mean: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2),
+        FLOAT(5, 2, unsigned=True),
         comment=" Percent of purity-filtered clusters, mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_cluster_pf_stdev: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2), comment="Standard deviation value for interop_cluster_pf_mean"
+        FLOAT(5, 2, unsigned=True),
+        comment="Standard deviation value for interop_cluster_pf_mean",
     )
     interop_occupied_mean: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2),
+        FLOAT(5, 2, unsigned=True),
         comment="Percent of occupied flowcell wells, a mean value over tiles of this lane (derived from Illumina InterOp files)",
     )
     interop_occupied_stdev: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2), comment="Standard deviation value for interop_occupied_mean"
+        FLOAT(5, 2, unsigned=True),
+        comment="Standard deviation value for interop_occupied_mean",
     )
 
     iseq_product_metrics: Mapped[list["IseqProductMetrics"]] = relationship(
@@ -1214,10 +1365,14 @@ class IseqRunStatusDict(Base):
     __tablename__ = "iseq_run_status_dict"
     __table_args__ = (Index("iseq_run_status_dict_description_index", "description"),)
 
-    id_run_status_dict: Mapped[int] = mapped_column(INTEGER, primary_key=True)
-    description: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    iscurrent: Mapped[int] = mapped_column(TINYINT, nullable=False)
-    temporal_index: Mapped[Optional[int]] = mapped_column(SMALLINT)
+    id_run_status_dict: Mapped[int] = mapped_column(
+        INTEGER(unsigned=True), primary_key=True
+    )
+    description: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    iscurrent: Mapped[int] = mapped_column(TINYINT(unsigned=True), nullable=False)
+    temporal_index: Mapped[Optional[int]] = mapped_column(SMALLINT(unsigned=True))
 
     iseq_run_status: Mapped[list["IseqRunStatus"]] = relationship(
         "IseqRunStatus", back_populates="iseq_run_status_dict"
@@ -1235,29 +1390,33 @@ class LabwareLocation(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     labware_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Barcode on the stored labware"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Barcode on the stored labware",
     )
     location_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Barcode associated with storage location"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Barcode associated with storage location",
     )
     full_location_address: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Fully qualifed address of the nested location",
     )
     location_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         server_default=text("''"),
         comment="Name of location where labware is stored",
     )
     lims_id: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="ID of the storage system this data comes from",
     )
     stored_by: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Username of the person who placed the item there",
     )
@@ -1289,19 +1448,19 @@ t_labware_location_old = Table(
     Column("id", BigInteger, nullable=False, server_default=text("'0'")),
     Column(
         "labware_barcode",
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Barcode on the stored labware",
     ),
     Column(
         "location_barcode",
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Barcode associated with storage location",
     ),
     Column(
         "full_location_address",
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Fully qualifed address of the nested location",
     ),
@@ -1322,13 +1481,13 @@ t_labware_location_old = Table(
     ),
     Column(
         "lims_id",
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="ID of the storage system this data comes from",
     ),
     Column(
         "stored_by",
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Username of the person who placed the item there",
     ),
@@ -1380,18 +1539,20 @@ class LighthouseSample(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     root_sample_id: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Id for this sample provided by the Lighthouse lab",
     )
-    cog_uk_id: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    cog_uk_id: Mapped[str] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"), nullable=False
+    )
     rna_id: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Lighthouse lab-provided id made up of plate barcode and well",
     )
     result: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Covid-19 test result from the Lighthouse lab",
     )
@@ -1402,7 +1563,7 @@ class LighthouseSample(Base):
         comment="Identifies if this sample has the most up to date information for the same rna_id",
     )
     mongodb_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Auto-generated id from MongoDB"
+        String(255, "utf8mb3_unicode_ci"), comment="Auto-generated id from MongoDB"
     )
     cog_uk_id_unique: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
@@ -1410,50 +1571,54 @@ class LighthouseSample(Base):
         comment="A flag to indicate cog_uk_id should be unique. NULL allows reuse of the ID in another row.",
     )
     plate_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Barcode of plate sample arrived in, from rna_id"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Barcode of plate sample arrived in, from rna_id",
     )
     coordinate: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Well position from plate sample arrived in, from rna_id"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Well position from plate sample arrived in, from rna_id",
     )
     date_tested_string: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="When the covid-19 test was carried out by the Lighthouse lab",
     )
     date_tested: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="date_tested_string in date format"
     )
     source: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Lighthouse centre that the sample came from"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Lighthouse centre that the sample came from",
     )
     lab_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Id of the lab, within the Lighthouse centre"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Id of the lab, within the Lighthouse centre",
     )
-    ch1_target: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ch1_result: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ch1_target: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ch1_result: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     ch1_cq: Mapped[Optional[decimal.Decimal]] = mapped_column(DECIMAL(11, 8))
-    ch2_target: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ch2_result: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ch2_target: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ch2_result: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     ch2_cq: Mapped[Optional[decimal.Decimal]] = mapped_column(DECIMAL(11, 8))
-    ch3_target: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ch3_result: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ch3_target: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ch3_result: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     ch3_cq: Mapped[Optional[decimal.Decimal]] = mapped_column(DECIMAL(11, 8))
-    ch4_target: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ch4_result: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    ch4_target: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ch4_result: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     ch4_cq: Mapped[Optional[decimal.Decimal]] = mapped_column(DECIMAL(11, 8))
     filtered_positive: Mapped[Optional[int]] = mapped_column(
         TINYINT(1), comment="Filtered positive result value"
     )
     filtered_positive_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Filtered positive version"
+        String(255, "utf8mb3_unicode_ci"), comment="Filtered positive version"
     )
     filtered_positive_timestamp: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Filtered positive timestamp"
     )
     lh_sample_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="Sample uuid created in crawler"
+        String(36, "utf8mb3_unicode_ci"), comment="Sample uuid created in crawler"
     )
     lh_source_plate_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="Source plate uuid created in crawler"
+        String(36, "utf8mb3_unicode_ci"), comment="Source plate uuid created in crawler"
     )
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="When this record was inserted"
@@ -1468,7 +1633,8 @@ class LighthouseSample(Base):
         TINYINT(1), comment="PAM provided value whether sample is important"
     )
     current_rna_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), Computed("(if((`is_current` = 1),`rna_id`,NULL))", persisted=True)
+        String(255, "utf8mb3_unicode_ci"),
+        Computed("(if((`is_current` = 1),`rna_id`,NULL))", persisted=True),
     )
 
 
@@ -1483,30 +1649,38 @@ class LongReadQcResult(Base):
         BigInteger, primary_key=True
     )
     labware_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Barcode of the labware that was the source for the QC tests.",
     )
     sample_id: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="External identifier for the sample(s)."
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="External identifier for the sample(s).",
     )
     assay_type: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Type of the QC test."
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Type of the QC test.",
     )
     assay_type_key: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Unique identifier of the QC test."
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Unique identifier of the QC test.",
     )
     value: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="QC result value"
+        String(255, "utf8mb3_unicode_ci"), nullable=False, comment="QC result value"
     )
     units: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Unit of the value for example mg,ng etc"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Unit of the value for example mg,ng etc",
     )
     id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Identifier of the LIMS where QC was published from"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Identifier of the LIMS where QC was published from",
     )
     id_long_read_qc_result_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="LIMS specific id for QC result"
+        String(255, "utf8mb3_unicode_ci"), comment="LIMS specific id for QC result"
     )
     created: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="The date the qc_result was first created in LIMS"
@@ -1518,10 +1692,12 @@ class LongReadQcResult(Base):
         DateTime, comment="Timestamp of the latest warehouse update."
     )
     qc_status: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Status of the QC decision eg pass, fail etc"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Status of the QC decision eg pass, fail etc",
     )
     qc_status_decision_by: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Who made the QC status decision eg ToL, Long Read"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Who made the QC status decision eg ToL, Long Read",
     )
 
 
@@ -1550,20 +1726,24 @@ class PacBioRunWellMetrics(Base):
 
     id_pac_bio_rw_metrics_tmp: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_pac_bio_product: Mapped[str] = mapped_column(
-        CHAR(64), nullable=False, comment="Product id"
+        CHAR(64, collation="utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Product id",
     )
     pac_bio_run_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Lims specific identifier for the pacbio run",
     )
     well_label: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="The well identifier for the plate, A1-H12",
     )
     instrument_type: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, comment="The instrument type e.g. Sequel"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The instrument type e.g. Sequel",
     )
     plate_number: Mapped[Optional[int]] = mapped_column(
         Integer,
@@ -1584,65 +1764,76 @@ class PacBioRunWellMetrics(Base):
         comment="The final sequencing QC outcome as 0(failed), 1(passed) or NULL",
     )
     instrument_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The instrument name e.g. SQ54097"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The instrument name e.g. SQ54097",
     )
     chip_type: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The chip type e.g. 8mChip"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The chip type e.g. 8mChip",
     )
     sl_hostname: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="SMRT Link server hostname"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="SMRT Link server hostname",
     )
     sl_run_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="SMRT Link specific run uuid"
+        VARCHAR(36, collation="utf8mb3_unicode_ci"),
+        comment="SMRT Link specific run uuid",
     )
     sl_ccs_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="SMRT Link specific ccs dataset uuid"
+        VARCHAR(36, collation="utf8mb3_unicode_ci"),
+        comment="SMRT Link specific ccs dataset uuid",
     )
     ts_run_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The PacBio run name"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The PacBio run name",
     )
     movie_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The PacBio movie name"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The PacBio movie name",
     )
     movie_minutes: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Movie time (collection time) in minutes"
+        SMALLINT(unsigned=True), comment="Movie time (collection time) in minutes"
     )
     created_by: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="Created by user name recorded in SMRT Link"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="Created by user name recorded in SMRT Link",
     )
     binding_kit: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Binding kit version"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="Binding kit version",
     )
     sequencing_kit: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sequencing kit version"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="Sequencing kit version",
     )
     sequencing_kit_lot_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sequencing Kit lot number"
+        VARCHAR(255, collation="utf8mb3_unicode_ci"),
+        comment="Sequencing Kit lot number",
     )
     cell_lot_number: Mapped[Optional[str]] = mapped_column(
         String(32), comment="SMRT Cell Lot Number"
     )
     ccs_execution_mode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32),
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
         comment="The PacBio ccs exection mode e.g. OnInstument, OffInstument or None",
     )
     demultiplex_mode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32),
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
         comment="Demultiplexing mode e.g. OnInstument, OffInstument or None",
     )
     include_kinetics: Mapped[Optional[int]] = mapped_column(
-        TINYINT, comment="Include kinetics information where ccs is run"
+        TINYINT(unsigned=True), comment="Include kinetics information where ccs is run"
     )
     hifi_only_reads: Mapped[Optional[int]] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         comment="CCS was run on the instrument and only HiFi reads were included in the export from the instrument",
     )
     heteroduplex_analysis: Mapped[Optional[int]] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         comment="Analysis has been run on the instrument to detect and resolve heteroduplex reads",
     )
     loading_conc: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="SMRT Cell loading concentration (pM)"
+        FLOAT(unsigned=True), comment="SMRT Cell loading concentration (pM)"
     )
     run_start: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run started"
@@ -1668,113 +1859,122 @@ class PacBioRunWellMetrics(Base):
         comment="Last recorded status, primarily to explain wells not completed.",
     )
     chemistry_sw_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The PacBio chemistry software version"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The PacBio chemistry software version",
     )
     instrument_sw_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The PacBio instrument software version"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The PacBio instrument software version",
     )
     primary_analysis_sw_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(32), comment="The PacBio primary analysis software version"
+        VARCHAR(32, collation="utf8mb3_unicode_ci"),
+        comment="The PacBio primary analysis software version",
     )
     control_num_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The number of control reads"
+        INTEGER(unsigned=True), comment="The number of control reads"
     )
     control_concordance_mean: Mapped[Optional[float]] = mapped_column(
-        FLOAT(8, 6),
+        FLOAT(8, 6, unsigned=True),
         comment="The average concordance between the control raw reads and the control reference sequence",
     )
     control_concordance_mode: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="The modal value from the concordance between the control raw reads and the control reference sequence",
     )
     control_read_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The mean polymerase read length of the control reads"
+        INTEGER(unsigned=True),
+        comment="The mean polymerase read length of the control reads",
     )
     local_base_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT(8, 6),
+        FLOAT(8, 6, unsigned=True),
         comment="The average base incorporation rate, excluding polymerase pausing events",
     )
     polymerase_read_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Calculated by multiplying the number of productive (P1) ZMWs by the mean polymerase read length",
     )
     polymerase_num_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The number of polymerase reads"
+        INTEGER(unsigned=True), comment="The number of polymerase reads"
     )
     polymerase_read_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The mean high-quality read length of all polymerase reads"
+        INTEGER(unsigned=True),
+        comment="The mean high-quality read length of all polymerase reads",
     )
     polymerase_read_length_n50: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="Fifty percent of the trimmed read length of all polymerase reads are longer than this value",
     )
     insert_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="The average subread length, considering only the longest subread from each ZMW",
     )
     insert_length_n50: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="Fifty percent of the subreads are longer than this value when considering only the longest subread from each ZMW",
     )
     unique_molecular_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The unique molecular yield in bp"
+        BIGINT(unsigned=True), comment="The unique molecular yield in bp"
     )
     productive_zmws_num: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of productive ZMWs"
+        INTEGER(unsigned=True), comment="Number of productive ZMWs"
     )
     p0_num: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of empty ZMWs with no high quality read detected"
+        INTEGER(unsigned=True),
+        comment="Number of empty ZMWs with no high quality read detected",
     )
     p1_num: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of ZMWs with a high quality read detected"
+        INTEGER(unsigned=True),
+        comment="Number of ZMWs with a high quality read detected",
     )
     p2_num: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="Number of other ZMWs, signal detected but no high quality read",
     )
     adapter_dimer_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2),
+        FLOAT(5, 2, unsigned=True),
         comment="The percentage of pre-filter ZMWs which have observed inserts of 0-10 bp",
     )
     short_insert_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2),
+        FLOAT(5, 2, unsigned=True),
         comment="The percentage of pre-filter ZMWs which have observed inserts of 11-100 bp",
     )
     hifi_read_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of HiFi bases"
+        BIGINT(unsigned=True), comment="The number of HiFi bases"
     )
     hifi_num_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The number of HiFi reads"
+        INTEGER(unsigned=True), comment="The number of HiFi reads"
     )
     hifi_read_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The mean HiFi read length"
+        INTEGER(unsigned=True), comment="The mean HiFi read length"
     )
     hifi_read_quality_median: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="The median HiFi base quality"
+        SMALLINT(unsigned=True), comment="The median HiFi base quality"
     )
     hifi_number_passes_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The mean number of passes per HiFi read"
+        INTEGER(unsigned=True), comment="The mean number of passes per HiFi read"
     )
     hifi_low_quality_read_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of HiFi bases filtered due to low quality (<Q20)"
+        BIGINT(unsigned=True),
+        comment="The number of HiFi bases filtered due to low quality (<Q20)",
     )
     hifi_low_quality_num_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The number of HiFi reads filtered due to low quality (<Q20)"
+        INTEGER(unsigned=True),
+        comment="The number of HiFi reads filtered due to low quality (<Q20)",
     )
     hifi_low_quality_read_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="The mean length of HiFi reads filtered due to low quality (<Q20)",
     )
     hifi_low_quality_read_quality_median: Mapped[Optional[int]] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         comment="The median base quality of HiFi bases filtered due to low quality (<Q20)",
     )
     hifi_barcoded_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         comment="Number of reads with an expected barcode in demultiplexed HiFi data",
     )
     hifi_bases_in_barcoded_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Number of bases in reads with an expected barcode in demultiplexed HiFi data",
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
@@ -1839,20 +2039,24 @@ class Sample(Base):
     )
 
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
     uuid_sample_lims: Mapped[str] = mapped_column(
-        VARCHAR(36), nullable=False, comment="LIMS-specific sample uuid"
+        VARCHAR(36, collation="utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMS-specific sample uuid",
     )
     id_sample_lims: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="LIMS-specific sample identifier"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMS-specific sample identifier",
     )
     last_updated: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Timestamp of last update"
@@ -1869,71 +2073,120 @@ class Sample(Base):
     created: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of sample creation"
     )
-    name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    reference_genome: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    organism: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    accession_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="A unique identifier generated by the INSDC"
+    name: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    reference_genome: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
     )
-    common_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    description: Mapped[Optional[str]] = mapped_column(TEXT)
-    taxon_id: Mapped[Optional[int]] = mapped_column(INTEGER)
-    father: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    mother: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    replicate: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ethnicity: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    gender: Mapped[Optional[str]] = mapped_column(VARCHAR(20))
-    cohort: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    country_of_origin: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    geographical_region: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    sanger_sample_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    organism: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    accession_number: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        comment="A unique identifier generated by the INSDC",
+    )
+    common_name: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    description: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
+    taxon_id: Mapped[Optional[int]] = mapped_column(INTEGER(unsigned=True))
+    father: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    mother: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    replicate: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ethnicity: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    gender: Mapped[Optional[str]] = mapped_column(String(20, "utf8mb3_unicode_ci"))
+    cohort: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    country_of_origin: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    geographical_region: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    sanger_sample_id: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     control: Mapped[Optional[int]] = mapped_column(TINYINT(1))
-    supplier_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    public_name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    sample_visibility: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    strain: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    donor_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    supplier_name: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    public_name: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    sample_visibility: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    strain: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    donor_id: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     phenotype: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The phenotype of the sample as described in Sequencescape",
     )
     developmental_stage: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Developmental Stage"
+        String(255, "utf8mb3_unicode_ci"), comment="Developmental Stage"
     )
-    control_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    sibling: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    control_type: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    sibling: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     is_resubmitted: Mapped[Optional[int]] = mapped_column(TINYINT(1))
-    date_of_sample_collection: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    date_of_sample_extraction: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    extraction_method: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    purified: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    purification_method: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    customer_measured_concentration: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    concentration_determined_by: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    sample_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    storage_conditions: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    genotype: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    age: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    cell_type: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    disease_state: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    compound: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    dose: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    immunoprecipitate: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    growth_condition: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    organism_part: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    time_point: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    disease: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    subject: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    treatment: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    date_of_sample_collection: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    date_of_sample_extraction: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    extraction_method: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    purified: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    purification_method: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    customer_measured_concentration: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    concentration_determined_by: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    sample_type: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    storage_conditions: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    genotype: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    age: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    cell_type: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    disease_state: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    compound: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    dose: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    immunoprecipitate: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    growth_condition: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    organism_part: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    time_point: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    disease: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    subject: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    treatment: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     date_of_consent_withdrawn: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime
     )
-    marked_as_consent_withdrawn_by: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    customer_measured_volume: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    gc_content: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    dna_source: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    marked_as_consent_withdrawn_by: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    customer_measured_volume: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    gc_content: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    dna_source: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
     priority_level: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Priority level eg Medium, High etc"
+        String(255, "utf8mb3_unicode_ci"), comment="Priority level eg Medium, High etc"
     )
 
     bmap_flowcell: Mapped[list["BmapFlowcell"]] = relationship(
@@ -1977,7 +2230,7 @@ class Sample(Base):
 t_schema_migrations = Table(
     "schema_migrations",
     Base.metadata,
-    Column("version", VARCHAR(255), nullable=False),
+    Column("version", String(255, "utf8mb3_unicode_ci"), nullable=False),
     Index("unique_schema_migrations", "version", unique=True),
 )
 
@@ -1993,12 +2246,12 @@ class SeqProductIrodsLocations(Base):
     )
 
     id_seq_product_irods_locations_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_product: Mapped[str] = mapped_column(
-        VARCHAR(64),
+        VARCHAR(64, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="A sequencing platform specific product id. For Illumina, data corresponds to the id_iseq_product column in the iseq_product_metrics table",
     )
@@ -2041,30 +2294,52 @@ class StanSampleLabware(Base):
     __tablename__ = "stan_sample_labware"
 
     id_tmp: Mapped[int] = mapped_column(Integer, primary_key=True)
-    barcode: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    lw_type: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
+    barcode: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    lw_type: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
     lw_created: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, nullable=False)
-    state: Mapped[str] = mapped_column(VARCHAR(9), nullable=False)
-    slot_address: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
-    bio_state: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
+    state: Mapped[str] = mapped_column(String(9, "utf8mb3_unicode_ci"), nullable=False)
+    slot_address: Mapped[str] = mapped_column(
+        String(8, "utf8mb3_unicode_ci"), nullable=False
+    )
+    bio_state: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
     sample_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    tissue_type: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
+    tissue_type: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
     spatial_location: Mapped[int] = mapped_column(Integer, nullable=False)
-    donor_name: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    species: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
-    external_barcode: Mapped[Optional[str]] = mapped_column(VARCHAR(32))
-    costing: Mapped[Optional[str]] = mapped_column(TEXT)
+    donor_name: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    species: Mapped[str] = mapped_column(
+        String(64, "utf8mb3_unicode_ci"), nullable=False
+    )
+    external_barcode: Mapped[Optional[str]] = mapped_column(
+        String(32, "utf8mb3_unicode_ci")
+    )
+    costing: Mapped[Optional[str]] = mapped_column(Text(collation="utf8mb3_unicode_ci"))
     section: Mapped[Optional[int]] = mapped_column(Integer)
-    work_number: Mapped[Optional[str]] = mapped_column(TEXT)
+    work_number: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
     highest_section: Mapped[Optional[int]] = mapped_column(Integer)
-    external_name: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
-    replicate: Mapped[Optional[str]] = mapped_column(VARCHAR(8))
-    medium: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
-    fixative: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
-    humfre: Mapped[Optional[str]] = mapped_column(VARCHAR(16))
-    life_stage: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
-    thickness: Mapped[Optional[str]] = mapped_column(TEXT)
-    bio_risk: Mapped[Optional[str]] = mapped_column(VARCHAR(32))
+    external_name: Mapped[Optional[str]] = mapped_column(
+        String(64, "utf8mb3_unicode_ci")
+    )
+    replicate: Mapped[Optional[str]] = mapped_column(String(8, "utf8mb3_unicode_ci"))
+    medium: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
+    fixative: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
+    humfre: Mapped[Optional[str]] = mapped_column(String(16, "utf8mb3_unicode_ci"))
+    life_stage: Mapped[Optional[str]] = mapped_column(String(10, "utf8mb3_unicode_ci"))
+    thickness: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
+    bio_risk: Mapped[Optional[str]] = mapped_column(String(32, "utf8mb3_unicode_ci"))
 
 
 class StanXenium(Base):
@@ -2075,23 +2350,39 @@ class StanXenium(Base):
     xenium_analyser_performed: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False
     )
-    run: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
+    run: Mapped[str] = mapped_column(String(255, "utf8mb3_unicode_ci"), nullable=False)
     sample_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    slot_address: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
-    barcode: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    xenium_analyser_user: Mapped[str] = mapped_column(VARCHAR(32), nullable=False)
-    cassette_position: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    decoding_reagent_A_lot: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    decoding_reagent_B_lot: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    decoding_consumables_lot: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    slot_address: Mapped[str] = mapped_column(
+        String(8, "utf8mb3_unicode_ci"), nullable=False
+    )
+    barcode: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    xenium_analyser_user: Mapped[str] = mapped_column(
+        String(32, "utf8mb3_unicode_ci"), nullable=False
+    )
+    cassette_position: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    decoding_reagent_A_lot: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    decoding_reagent_B_lot: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    decoding_consumables_lot: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     section: Mapped[Optional[int]] = mapped_column(Integer)
-    roi: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
-    work_number: Mapped[Optional[str]] = mapped_column(VARCHAR(10))
+    roi: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
+    work_number: Mapped[Optional[str]] = mapped_column(String(10, "utf8mb3_unicode_ci"))
     qc_op_id: Mapped[Optional[int]] = mapped_column(Integer)
     qc_perfomed: Mapped[Optional[datetime.datetime]] = mapped_column(TIMESTAMP)
-    qc_comments: Mapped[Optional[str]] = mapped_column(TEXT)
-    qc_user: Mapped[Optional[str]] = mapped_column(VARCHAR(32))
-    equipment: Mapped[Optional[str]] = mapped_column(VARCHAR(64))
+    qc_comments: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
+    qc_user: Mapped[Optional[str]] = mapped_column(String(32, "utf8mb3_unicode_ci"))
+    equipment: Mapped[Optional[str]] = mapped_column(String(64, "utf8mb3_unicode_ci"))
 
 
 class Study(Base):
@@ -2107,17 +2398,19 @@ class Study(Base):
     )
 
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. GCLP-CLARITY, SEQSCAPE",
     )
     id_study_lims: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, comment="LIMS-specific study identifier"
+        String(20, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMS-specific study identifier",
     )
     last_updated: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Timestamp of last update"
@@ -2135,7 +2428,7 @@ class Study(Base):
         TINYINT(1), nullable=False, server_default=text("'0'")
     )
     uuid_study_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="LIMS-specific study uuid"
+        String(36, "utf8mb3_unicode_ci"), comment="LIMS-specific study uuid"
     )
     deleted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of study deletion"
@@ -2143,16 +2436,28 @@ class Study(Base):
     created: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of study creation"
     )
-    name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    reference_genome: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    name: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    reference_genome: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     ethically_approved: Mapped[Optional[int]] = mapped_column(TINYINT(1))
-    faculty_sponsor: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    state: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
-    study_type: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
-    abstract: Mapped[Optional[str]] = mapped_column(TEXT)
-    abbreviation: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
-    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    faculty_sponsor: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    state: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
+    study_type: Mapped[Optional[str]] = mapped_column(String(50, "utf8mb3_unicode_ci"))
+    abstract: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
+    abbreviation: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    accession_number: Mapped[Optional[str]] = mapped_column(
+        String(50, "utf8mb3_unicode_ci")
+    )
+    description: Mapped[Optional[str]] = mapped_column(
+        Text(collation="utf8mb3_unicode_ci")
+    )
     contains_human_dna: Mapped[Optional[int]] = mapped_column(
         TINYINT(1), comment="Lane may contain human DNA"
     )
@@ -2160,42 +2465,79 @@ class Study(Base):
         TINYINT(1),
         comment="Human DNA in the lane is a contaminant and should be removed",
     )
-    data_release_strategy: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_release_sort_of_study: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ena_project_id: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    study_title: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    study_visibility: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ega_dac_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    array_express_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ega_policy_accession_number: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_release_timing: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_release_delay_period: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_release_delay_reason: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_access_group: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_release_strategy: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_release_sort_of_study: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    ena_project_id: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    study_title: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    study_visibility: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    ega_dac_accession_number: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    array_express_accession_number: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    ega_policy_accession_number: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_release_timing: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_release_delay_period: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_release_delay_reason: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_access_group: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     prelim_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="The preliminary study id prior to entry into the LIMS"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="The preliminary study id prior to entry into the LIMS",
     )
     hmdmc_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The Human Materials and Data Management Committee approval number(s) for the study.",
     )
     data_destination: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The data destination type(s) for the study. It could be 'standard', '14mg' or 'gseq'. This may be extended, if Sanger gains more external customers. It can contain multiply destinations separated by a space.",
     )
-    s3_email_list: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    data_deletion_period: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    s3_email_list: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    data_deletion_period: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     contaminated_human_data_access_group: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255)
+        String(255, "utf8mb3_unicode_ci")
     )
-    programme: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ebi_library_strategy: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ebi_library_source: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    ebi_library_selection: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    programme: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    ebi_library_strategy: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    ebi_library_source: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
+    ebi_library_selection: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
     data_release_timing_publication_comment: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255)
+        String(255, "utf8mb3_unicode_ci")
     )
-    data_share_in_preprint: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    data_share_in_preprint: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci")
+    )
 
     bmap_flowcell: Mapped[list["BmapFlowcell"]] = relationship(
         "BmapFlowcell", back_populates="study"
@@ -2237,10 +2579,10 @@ class UseqRunMetrics(Base):
     )
 
     id_run: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="NPG run identifier"
+        INTEGER(unsigned=True), primary_key=True, comment="NPG run identifier"
     )
     instrument_name: Mapped[str] = mapped_column(
-        CHAR(32, collation="utf8mb3_unicode_ci"),
+        CHAR(32, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Instrument name in NPG tracking system",
     )
@@ -2258,7 +2600,7 @@ class UseqRunMetrics(Base):
         comment="Instrument run folder name",
     )
     cancelled: Mapped[int] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         nullable=False,
         server_default=text("'0'"),
         comment="Boolean flag to indicate whether the run was failed in some way or its data has been discarded",
@@ -2274,7 +2616,7 @@ class UseqRunMetrics(Base):
     ultimagen_Library_Pool: Mapped[Optional[str]] = mapped_column(
         String(255, "utf8mb3_unicode_ci"), comment="Ultimagen  Library_Pool"
     )
-    run_priority: Mapped[Optional[int]] = mapped_column(TINYINT)
+    run_priority: Mapped[Optional[int]] = mapped_column(TINYINT(unsigned=True))
     run_in_progress: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of run in progress status"
     )
@@ -2287,13 +2629,14 @@ class UseqRunMetrics(Base):
         comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
     )
     num_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="Number of reads for this wafer"
+        BIGINT(unsigned=True), comment="Number of reads for this wafer"
     )
     input_num_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="Number of input reads (before PF) for this wafer"
+        BIGINT(unsigned=True),
+        comment="Number of input reads (before PF) for this wafer",
     )
     tags_decode_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="An overall percent of pf reads assigned to expected barcodes and the control",
     )
 
@@ -2333,10 +2676,14 @@ class BmapFlowcell(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     experiment_name: Mapped[str] = mapped_column(
         String(255),
@@ -2364,7 +2711,7 @@ class BmapFlowcell(Base):
         String(16), comment="Manufacturer chip identifier"
     )
     position: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Flowcell position"
+        INTEGER(unsigned=True), comment="Flowcell position"
     )
     id_library_lims: Mapped[Optional[str]] = mapped_column(
         String(255), comment="Earliest LIMs identifier associated with library creation"
@@ -2399,12 +2746,12 @@ class EseqFlowcell(Base):
     )
 
     id_eseq_flowcell_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database, id value can change",
     )
     id_flowcell_lims: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIMs-specific flowcell id, batch_id for Sequencescape",
     )
@@ -2415,59 +2762,64 @@ class EseqFlowcell(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
     lane: Mapped[int] = mapped_column(
-        SMALLINT, nullable=False, comment="Flowcell lane number, 1 or 2"
+        SMALLINT(unsigned=True), nullable=False, comment="Flowcell lane number, 1 or 2"
     )
     entity_type: Mapped[str] = mapped_column(
-        VARCHAR(30),
+        String(30, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Library type: library_indexed, library_indexed_spike",
     )
     id_pool_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with the pool",
     )
     entity_id_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        VARCHAR(20, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with this lane or plex or spike",
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence"
+        String(30, "utf8mb3_unicode_ci"), comment="Tag sequence"
     )
     tag2_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence for tag 2"
+        String(30, "utf8mb3_unicode_ci"), comment="Tag sequence for tag 2"
     )
     pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(60),
+        String(60, "utf8mb3_unicode_ci"),
         comment="LIMs-specific pipeline identifier that unambiguously defines library type",
     )
     bait_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(50), comment="WTSI-wide name that uniquely identifies a bait set"
+        String(50, "utf8mb3_unicode_ci"),
+        comment="WTSI-wide name that uniquely identifies a bait set",
     )
     requested_insert_size_from: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size min value"
+        INTEGER(unsigned=True), comment="Requested insert size min value"
     )
     requested_insert_size_to: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size max value"
+        INTEGER(unsigned=True), comment="Requested insert size max value"
     )
     id_library_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="Earliest LIMs identifier associated with library creation",
     )
     primer_panel: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Primer Panel name"
+        String(255, "utf8mb3_unicode_ci"), comment="Primer Panel name"
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="eseq_flowcell")
@@ -2496,21 +2848,25 @@ class FlgenPlate(Base):
     )
 
     id_flgen_plate_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     cost_code: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, comment="Valid WTSI cost code"
+        String(20, "utf8mb3_unicode_ci"), nullable=False, comment="Valid WTSI cost code"
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
@@ -2521,21 +2877,25 @@ class FlgenPlate(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     plate_barcode: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment="Manufacturer (Fluidigm) chip barcode"
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment="Manufacturer (Fluidigm) chip barcode",
     )
     id_flgen_plate_lims: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, comment="LIMs-specific plate id"
+        String(20, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMs-specific plate id",
     )
     well_label: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Manufactuer well identifier within a plate, S001-S192",
     )
     plate_barcode_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(128), comment="LIMs-specific plate barcode"
+        String(128, "utf8mb3_unicode_ci"), comment="LIMs-specific plate barcode"
     )
     plate_uuid_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="LIMs-specific plate uuid"
+        String(36, "utf8mb3_unicode_ci"), comment="LIMs-specific plate uuid"
     )
     plate_size: Mapped[Optional[int]] = mapped_column(
         SmallInteger, comment="Total number of wells on a plate"
@@ -2544,7 +2904,7 @@ class FlgenPlate(Base):
         SmallInteger, comment="Number of occupied wells on a plate"
     )
     well_uuid_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="LIMs-specific well uuid"
+        String(36, "utf8mb3_unicode_ci"), comment="LIMs-specific well uuid"
     )
     qc_state: Mapped[Optional[int]] = mapped_column(
         TINYINT(1), comment="QC state; 1 (pass), 0 (fail), NULL (not known)"
@@ -2578,19 +2938,25 @@ class GsuSampleUploads(Base):
     )
 
     id_gsu_sample_upload_tmp: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="Row ID"
+        INTEGER(unsigned=True), primary_key=True, comment="Row ID"
     )
     file_path: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="Location of data file"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Location of data file",
     )
     library_type: Mapped[str] = mapped_column(
-        VARCHAR(40), nullable=False, comment="Library type"
+        String(40, "utf8mb3_unicode_ci"), nullable=False, comment="Library type"
     )
     instrument_model: Mapped[str] = mapped_column(
-        VARCHAR(40), nullable=False, comment="Sequencing machine used"
+        String(40, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Sequencing machine used",
     )
     lab_name: Mapped[str] = mapped_column(
-        VARCHAR(100), nullable=False, comment="Lab supplying the data"
+        String(100, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Lab supplying the data",
     )
     ena_upload: Mapped[int] = mapped_column(
         TINYINT(1),
@@ -2609,16 +2975,17 @@ class GsuSampleUploads(Base):
         comment="Datetime this record was last updated",
     )
     id_study_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Study for this item"
+        INTEGER(unsigned=True), comment="Study for this item"
     )
     id_sample_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Sample info for this item"
+        INTEGER(unsigned=True), comment="Sample info for this item"
     )
     library_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(40), comment="Supplier library name"
+        String(40, "utf8mb3_unicode_ci"), comment="Supplier library name"
     )
     run_accession: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(40), comment="ENA run accession, populated on ENA submission"
+        String(40, "utf8mb3_unicode_ci"),
+        comment="ENA run accession, populated on ENA submission",
     )
 
     sample: Mapped[Optional["Sample"]] = relationship(
@@ -2653,25 +3020,27 @@ class IseqExternalProductComponents(Base):
     )
 
     id_iseq_ext_pr_components_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_iseq_product_ext: Mapped[str] = mapped_column(
-        CHAR(64),
+        CHAR(64, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="id (digest) for the external product composition",
     )
     id_iseq_product: Mapped[str] = mapped_column(
-        CHAR(64),
+        CHAR(64, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="id (digest) for one of the products components",
     )
     num_components: Mapped[int] = mapped_column(
-        TINYINT, nullable=False, comment="Number of component products for this product"
+        TINYINT(unsigned=True),
+        nullable=False,
+        comment="Number of component products for this product",
     )
     component_index: Mapped[int] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         nullable=False,
         comment="Unique component index within all components of this product, a value from 1 to the value of num_components column for this product",
     )
@@ -2723,7 +3092,7 @@ class IseqFlowcell(Base):
     )
 
     id_iseq_flowcell_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
@@ -2734,28 +3103,30 @@ class IseqFlowcell(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
     id_flowcell_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIMs-specific flowcell id, batch_id for Sequencescape",
     )
     position: Mapped[int] = mapped_column(
-        SMALLINT, nullable=False, comment="Flowcell lane number"
+        SMALLINT(unsigned=True), nullable=False, comment="Flowcell lane number"
     )
     entity_type: Mapped[str] = mapped_column(
-        VARCHAR(30),
+        VARCHAR(30, collation="utf8mb3_unicode_ci"),
         nullable=False,
         comment="Lane type: library, library_control, library_indexed, library_indexed_spike",
     )
     entity_id_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with this lane or plex or spike",
     )
@@ -2766,15 +3137,15 @@ class IseqFlowcell(Base):
         comment="Boolean flag indicating presence of a spike",
     )
     id_pool_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with the pool",
     )
     id_study_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True), comment='Study id, see "study.id_study_tmp"'
     )
     cost_code: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="Valid WTSI cost code"
+        String(20, "utf8mb3_unicode_ci"), comment="Valid WTSI cost code"
     )
     is_r_and_d: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
@@ -2782,7 +3153,7 @@ class IseqFlowcell(Base):
         comment="A boolean flag derived from cost code, flags RandD",
     )
     priority: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, server_default=text("'1'"), comment="Priority"
+        SMALLINT(unsigned=True), server_default=text("'1'"), comment="Priority"
     )
     manual_qc: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
@@ -2793,66 +3164,73 @@ class IseqFlowcell(Base):
         comment="Defaults to manual qc value; can be changed by the user later",
     )
     flowcell_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(15), comment="Manufacturer flowcell barcode or other identifier"
+        String(15, "utf8mb3_unicode_ci"),
+        comment="Manufacturer flowcell barcode or other identifier",
     )
     tag_index: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Tag index, NULL if lane is not a pool"
+        SMALLINT(unsigned=True), comment="Tag index, NULL if lane is not a pool"
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence"
+        String(30, "utf8mb3_unicode_ci"), comment="Tag sequence"
     )
     tag_set_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="LIMs-specific identifier of the tag set"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="LIMs-specific identifier of the tag set",
     )
     tag_set_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(100), comment="WTSI-wide tag set name"
+        String(100, "utf8mb3_unicode_ci"), comment="WTSI-wide tag set name"
     )
     tag_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="The position of tag within the tag group"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="The position of tag within the tag group",
     )
     tag2_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence for tag 2"
+        String(30, "utf8mb3_unicode_ci"), comment="Tag sequence for tag 2"
     )
     tag2_set_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="LIMs-specific identifier of the tag set for tag 2"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="LIMs-specific identifier of the tag set for tag 2",
     )
     tag2_set_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(100), comment="WTSI-wide tag set name for tag 2"
+        String(100, "utf8mb3_unicode_ci"), comment="WTSI-wide tag set name for tag 2"
     )
     tag2_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="The position of tag2 within the tag group"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="The position of tag2 within the tag group",
     )
     pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(60),
+        String(60, "utf8mb3_unicode_ci"),
         comment="LIMs-specific pipeline identifier that unambiguously defines library type",
     )
     bait_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(50), comment="WTSI-wide name that uniquely identifies a bait set"
+        String(50, "utf8mb3_unicode_ci"),
+        comment="WTSI-wide name that uniquely identifies a bait set",
     )
     requested_insert_size_from: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size min value"
+        INTEGER(unsigned=True), comment="Requested insert size min value"
     )
     requested_insert_size_to: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size max value"
+        INTEGER(unsigned=True), comment="Requested insert size max value"
     )
     forward_read_length: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Requested forward read length, bp"
+        SMALLINT(unsigned=True), comment="Requested forward read length, bp"
     )
     reverse_read_length: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Requested reverse read length, bp"
+        SMALLINT(unsigned=True), comment="Requested reverse read length, bp"
     )
     legacy_library_id: Mapped[Optional[int]] = mapped_column(
         Integer, comment="Legacy library_id for backwards compatibility."
     )
     id_library_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="Earliest LIMs identifier associated with library creation",
     )
     team: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The team responsible for creating the flowcell"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The team responsible for creating the flowcell",
     )
     purpose: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30),
+        String(30, "utf8mb3_unicode_ci"),
         comment="Describes the reason the sequencing was conducted. Eg. Standard, QC, Control",
     )
     suboptimal: Mapped[Optional[int]] = mapped_column(
@@ -2860,10 +3238,11 @@ class IseqFlowcell(Base):
         comment="Indicates that a sample has failed a QC step during processing",
     )
     primer_panel: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Primer Panel name"
+        String(255, "utf8mb3_unicode_ci"), comment="Primer Panel name"
     )
     spiked_phix_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="Barcode of the PhiX tube added to the lane"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="Barcode of the PhiX tube added to the lane",
     )
     spiked_phix_percentage: Mapped[Optional[float]] = mapped_column(
         Float,
@@ -2873,7 +3252,8 @@ class IseqFlowcell(Base):
         Float, comment="Final instrument loading concentration (pM)"
     )
     workflow: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="Workflow used when processing the flowcell"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="Workflow used when processing the flowcell",
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="iseq_flowcell")
@@ -2895,10 +3275,11 @@ class IseqRunInfo(IseqRun):
     )
 
     id_run: Mapped[int] = mapped_column(
-        INTEGER, primary_key=True, comment="NPG run identifier"
+        INTEGER(unsigned=True), primary_key=True, comment="NPG run identifier"
     )
     run_parameters_xml: Mapped[Optional[str]] = mapped_column(
-        TEXT, comment="The contents of Illumina's {R,r}unParameters.xml file"
+        Text(collation="utf8mb3_unicode_ci"),
+        comment="The contents of Illumina's {R,r}unParameters.xml file",
     )
 
 
@@ -2914,15 +3295,15 @@ class IseqRunStatus(Base):
         Index("iseq_run_status_rsd_fk", "id_run_status_dict"),
     )
 
-    id_run_status: Mapped[int] = mapped_column(INTEGER, primary_key=True)
+    id_run_status: Mapped[int] = mapped_column(INTEGER(unsigned=True), primary_key=True)
     id_run: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment="NPG run identifier"
+        INTEGER(unsigned=True), nullable=False, comment="NPG run identifier"
     )
     date: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Status timestamp"
     )
     id_run_status_dict: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         nullable=False,
         comment="Status identifier, see iseq_run_status_dict.id_run_status_dict",
     )
@@ -2958,9 +3339,13 @@ class OseqFlowcell(Base):
         Index("fk_oseq_flowcell_to_study", "id_study_tmp"),
     )
 
-    id_oseq_flowcell_tmp: Mapped[int] = mapped_column(INTEGER, primary_key=True)
+    id_oseq_flowcell_tmp: Mapped[int] = mapped_column(
+        INTEGER(unsigned=True), primary_key=True
+    )
     id_flowcell_lims: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="LIMs-specific flowcell id"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMs-specific flowcell id",
     )
     last_updated: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Timestamp of last update"
@@ -2969,18 +3354,22 @@ class OseqFlowcell(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     experiment_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The name of the experiment, eg. The lims generated run id",
     )
     instrument_name: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The name of the instrument on which the sample was run",
     )
@@ -2990,63 +3379,72 @@ class OseqFlowcell(Base):
         comment="The numeric identifier of the slot on which the sample was run",
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10), nullable=False, comment="LIM system identifier"
+        String(10, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIM system identifier",
     )
     pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="LIMs-specific pipeline identifier that unambiguously defines library type",
     )
     requested_data_type: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The type of data produced by sequencing, eg. basecalls only",
     )
     deleted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of any flowcell destruction"
     )
     tag_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Position of the first tag within the tag group"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Position of the first tag within the tag group",
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sequence of the first tag"
+        String(255, "utf8mb3_unicode_ci"), comment="Sequence of the first tag"
     )
     tag_set_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="LIMs-specific identifier of the tag set for the first tag",
     )
     tag_set_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="WTSI-wide tag set name for the first tag"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="WTSI-wide tag set name for the first tag",
     )
     tag2_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Position of the second tag within the tag group"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Position of the second tag within the tag group",
     )
     tag2_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Sequence of the second tag"
+        String(255, "utf8mb3_unicode_ci"), comment="Sequence of the second tag"
     )
     tag2_set_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="LIMs-specific identifier of the tag set for the second tag",
     )
     tag2_set_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="WTSI-wide tag set name for the second tag"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="WTSI-wide tag set name for the second tag",
     )
     flowcell_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The id of the flowcell. Supplied with the flowcell. Format FAVnnnn",
     )
     library_tube_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="The uuid for the originating library tube"
+        String(36, "utf8mb3_unicode_ci"),
+        comment="The uuid for the originating library tube",
     )
     library_tube_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The barcode for the originating library tube"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The barcode for the originating library tube",
     )
     run_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="The uuid of the run"
+        String(36, "utf8mb3_unicode_ci"), comment="The uuid of the run"
     )
     run_id: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Run identifier assigned by MinKNOW"
+        String(255, "utf8mb3_unicode_ci"), comment="Run identifier assigned by MinKNOW"
     )
     rebasecalling_process: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(50), comment="Settings required for modified basecalling"
+        String(50, "utf8mb3_unicode_ci"),
+        comment="Settings required for modified basecalling",
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="oseq_flowcell")
@@ -3092,67 +3490,85 @@ class PacBioRun(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "study.id_study_tmp"',
     )
     id_pac_bio_run_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Lims specific identifier for the pacbio run",
     )
     cost_code: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, comment="Valid WTSI cost-code"
+        String(20, "utf8mb3_unicode_ci"), nullable=False, comment="Valid WTSI cost-code"
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10), nullable=False, comment="LIM system identifier"
+        String(10, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIM system identifier",
     )
     plate_uuid_lims: Mapped[str] = mapped_column(
-        VARCHAR(36), nullable=False, comment="The plate uuid"
+        String(36, "utf8mb3_unicode_ci"), nullable=False, comment="The plate uuid"
     )
     well_label: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The well identifier for the plate, A1-H12",
     )
     well_uuid_lims: Mapped[str] = mapped_column(
-        VARCHAR(36), nullable=False, comment="The well uuid"
+        String(36, "utf8mb3_unicode_ci"), nullable=False, comment="The well uuid"
     )
     pac_bio_library_tube_id_lims: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIMS specific identifier for originating library tube",
     )
     pac_bio_library_tube_uuid: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The uuid for the originating library tube",
     )
     pac_bio_library_tube_name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="The name of the originating library tube"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The name of the originating library tube",
     )
     pac_bio_run_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="Uuid identifier for the pacbio run"
+        String(36, "utf8mb3_unicode_ci"), comment="Uuid identifier for the pacbio run"
     )
     tag_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag index within tag set, NULL if untagged"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="Tag index within tag set, NULL if untagged",
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(50), comment="Tag sequence for tag"
+        String(50, "utf8mb3_unicode_ci"), comment="Tag sequence for tag"
     )
     tag_set_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(20), comment="LIMs-specific identifier of the tag set for tag"
+        String(20, "utf8mb3_unicode_ci"),
+        comment="LIMs-specific identifier of the tag set for tag",
     )
     tag_set_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(100), comment="WTSI-wide tag set name for tag"
+        String(100, "utf8mb3_unicode_ci"), comment="WTSI-wide tag set name for tag"
     )
-    tag2_sequence: Mapped[Optional[str]] = mapped_column(VARCHAR(50))
-    tag2_set_id_lims: Mapped[Optional[str]] = mapped_column(VARCHAR(20))
-    tag2_set_name: Mapped[Optional[str]] = mapped_column(VARCHAR(100))
-    tag2_identifier: Mapped[Optional[str]] = mapped_column(VARCHAR(30))
+    tag2_sequence: Mapped[Optional[str]] = mapped_column(
+        String(50, "utf8mb3_unicode_ci")
+    )
+    tag2_set_id_lims: Mapped[Optional[str]] = mapped_column(
+        String(20, "utf8mb3_unicode_ci")
+    )
+    tag2_set_name: Mapped[Optional[str]] = mapped_column(
+        String(100, "utf8mb3_unicode_ci")
+    )
+    tag2_identifier: Mapped[Optional[str]] = mapped_column(
+        String(30, "utf8mb3_unicode_ci")
+    )
     plate_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The human readable barcode for the plate loaded onto the machine",
     )
     pac_bio_library_tube_legacy_id: Mapped[Optional[int]] = mapped_column(
@@ -3162,24 +3578,27 @@ class PacBioRun(Base):
         DateTime, comment="Timestamp of library creation"
     )
     pac_bio_run_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Name of the run"
+        String(255, "utf8mb3_unicode_ci"), comment="Name of the run"
     )
     pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(60),
+        String(60, "utf8mb3_unicode_ci"),
         comment="LIMS-specific pipeline identifier that unambiguously defines library type (eg. Sequel-v1, IsoSeq-v1)",
     )
     comparable_tag_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), Computed("(ifnull(`tag_identifier`,-(1)))", persisted=False)
+        String(255, "utf8mb3_unicode_ci"),
+        Computed("(ifnull(`tag_identifier`,-(1)))", persisted=False),
     )
     comparable_tag2_identifier: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False)
+        String(255, "utf8mb3_unicode_ci"),
+        Computed("(ifnull(`tag2_identifier`,-(1)))", persisted=False),
     )
     plate_number: Mapped[Optional[int]] = mapped_column(
         Integer,
         comment="The number of the plate that goes onto the sequencing machine. Necessary as an identifier for multi-plate support.",
     )
     pac_bio_library_tube_barcode: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The barcode of the originating library tube"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The barcode of the originating library tube",
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="pac_bio_run")
@@ -3205,7 +3624,7 @@ class QcResult(Base):
     )
 
     id_qc_result_tmp: Mapped[int] = mapped_column(Integer, primary_key=True)
-    id_sample_tmp: Mapped[int] = mapped_column(INTEGER, nullable=False)
+    id_sample_tmp: Mapped[int] = mapped_column(INTEGER(unsigned=True), nullable=False)
     id_qc_result_lims: Mapped[str] = mapped_column(
         String(20), nullable=False, comment="LIMS-specific qc_result identifier"
     )
@@ -3275,41 +3694,47 @@ class SamplesExtractionActivity(Base):
 
     id_activity_tmp: Mapped[int] = mapped_column(Integer, primary_key=True)
     id_activity_lims: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="LIMs-specific activity id"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIMs-specific activity id",
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     activity_type: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, comment="The type of the activity performed"
+        String(255, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="The type of the activity performed",
     )
     instrument: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The name of the instrument used to perform the activity",
     )
     kit_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the kit used to perform the activity",
     )
     kit_type: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The type of kit used to perform the activity",
     )
     input_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the labware (eg. plate or tube) at the begining of the activity",
     )
     output_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the labware (eg. plate or tube)  at the end of the activity",
     )
     user: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The name of the user who was most recently associated with the activity",
     )
@@ -3323,7 +3748,9 @@ class SamplesExtractionActivity(Base):
         DateTime, nullable=False, comment="Timestamp of activity completion"
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10), nullable=False, comment="LIM system identifier"
+        String(10, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIM system identifier",
     )
     deleted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Timestamp of any activity removal"
@@ -3375,29 +3802,37 @@ class StockResource(Base):
         comment="Timestamp of initial registration of stock in LIMS",
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "study.id_study_tmp"',
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10), nullable=False, comment="LIM system identifier"
+        String(10, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="LIM system identifier",
     )
     id_stock_resource_lims: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, comment="Lims specific identifier for the stock"
+        String(20, "utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Lims specific identifier for the stock",
     )
     labware_type: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The type of labware containing the stock. eg. Well, Tube",
     )
     labware_machine_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the containing labware as read by a barcode scanner",
     )
     labware_human_barcode: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="The barcode of the containing labware in human readable format",
     )
@@ -3406,10 +3841,10 @@ class StockResource(Base):
         comment="Timestamp of initial registration of deletion in parent LIMS. NULL if not deleted.",
     )
     stock_resource_uuid: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(36), comment="Uuid identifier for the stock"
+        String(36, "utf8mb3_unicode_ci"), comment="Uuid identifier for the stock"
     )
     labware_coordinate: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="For wells, the coordinate on the containing plate. Null for tubes.",
     )
     current_volume: Mapped[Optional[float]] = mapped_column(
@@ -3425,17 +3860,19 @@ class StockResource(Base):
         comment="The concentration of material recorded in the lab in nanograms per microlitre",
     )
     gel_pass: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The recorded result for the qel QC assay."
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The recorded result for the qel QC assay.",
     )
     pico_pass: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="The recorded result for the pico green assay. A pass indicates a successful assay, not sufficient material.",
     )
     snp_count: Mapped[Optional[int]] = mapped_column(
         Integer, comment="The number of markers detected in genotyping assays"
     )
     measured_gender: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="The gender call base on the genotyping assay"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="The gender call base on the genotyping assay",
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="stock_resource")
@@ -3452,20 +3889,22 @@ class StudyUsers(Base):
     )
 
     id_study_users_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     last_updated: Mapped[datetime.datetime] = mapped_column(
         DateTime, nullable=False, comment="Timestamp of last update"
     )
-    role: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    login: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    email: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
-    name: Mapped[Optional[str]] = mapped_column(VARCHAR(255))
+    role: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    login: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    email: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
+    name: Mapped[Optional[str]] = mapped_column(String(255, "utf8mb3_unicode_ci"))
 
     study: Mapped["Study"] = relationship("Study", back_populates="study_users")
 
@@ -3484,7 +3923,7 @@ class TolSampleBioproject(Base):
         Index("tol_sample_bioproject_file_index", "file", unique=True),
     )
 
-    id_tsb_tmp: Mapped[int] = mapped_column(INTEGER, primary_key=True)
+    id_tsb_tmp: Mapped[int] = mapped_column(INTEGER(unsigned=True), primary_key=True)
     date_added: Mapped[datetime.datetime] = mapped_column(
         TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
@@ -3493,7 +3932,7 @@ class TolSampleBioproject(Base):
         nullable=False,
         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
     )
-    id_sample_tmp: Mapped[Optional[int]] = mapped_column(INTEGER)
+    id_sample_tmp: Mapped[Optional[int]] = mapped_column(INTEGER(unsigned=True))
     file: Mapped[Optional[str]] = mapped_column(String(255))
     library_type: Mapped[Optional[str]] = mapped_column(
         Enum(
@@ -3554,7 +3993,7 @@ class UseqWafer(Base):
     )
 
     id_useq_wafer_tmp: Mapped[int] = mapped_column(
-        INTEGER,
+        INTEGER(unsigned=True),
         primary_key=True,
         comment="Internal to this database, id value can change",
     )
@@ -3565,107 +4004,114 @@ class UseqWafer(Base):
         DateTime, nullable=False, comment="Timestamp of warehouse update"
     )
     id_sample_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Sample id, see "sample.id_sample_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Sample id, see "sample.id_sample_tmp"',
     )
     id_study_tmp: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment='Study id, see "study.id_study_tmp"'
+        INTEGER(unsigned=True),
+        nullable=False,
+        comment='Study id, see "study.id_study_tmp"',
     )
     id_wafer_lims: Mapped[str] = mapped_column(
-        VARCHAR(60),
+        String(60, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIMs-specific wafer id, a concatenation of batch_for_opentrons, id_pool_lims and request_order",
     )
     batch_for_opentrons: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIMs-specific identifier, batch_id for Sequencescape",
     )
     id_lims: Mapped[str] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="LIM system identifier, e.g. CLARITY-GCLP, SEQSCAPE",
     )
     request_order: Mapped[int] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         nullable=False,
         comment="LIMs-specific identifier for order in a batch",
     )
     entity_type: Mapped[str] = mapped_column(
-        VARCHAR(30),
+        String(30, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Entity type, e.g. library_indexed or in the future some other library type",
     )
     id_pool_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with the pool",
     )
     entity_id_lims: Mapped[str] = mapped_column(
-        VARCHAR(20),
+        String(20, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Most specific LIMs identifier associated with this library",
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence"
+        String(30, "utf8mb3_unicode_ci"), comment="Tag sequence"
     )
     pipeline_id_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(60),
+        String(60, "utf8mb3_unicode_ci"),
         comment="LIMs-specific pipeline identifier that unambiguously defines library type",
     )
     bait_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(50), comment="WTSI-wide name that uniquely identifies a bait set"
+        String(50, "utf8mb3_unicode_ci"),
+        comment="WTSI-wide name that uniquely identifies a bait set",
     )
     requested_insert_size_from: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size min value"
+        INTEGER(unsigned=True), comment="Requested insert size min value"
     )
     requested_insert_size_to: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Requested insert size max value"
+        INTEGER(unsigned=True), comment="Requested insert size max value"
     )
     ot_recipe: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron recipe name: Flex or Free"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron recipe name: Flex or Free"
     )
     primer_panel: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Primer Panel name"
+        String(255, "utf8mb3_unicode_ci"), comment="Primer Panel name"
     )
     id_library_lims: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="Earliest LIMs identifier associated with library creation",
     )
     otr_carrier_lot_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron carrier lot number"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron carrier lot number"
     )
     otr_carrier_expiry: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Opentron carrier expiry date"
     )
     otr_reaction_mix_7_lot_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron reaction mix 7 lot number"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron reaction mix 7 lot number"
     )
     otr_reaction_mix_7_expiry: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Opentron reaction mix 7 expiry date"
     )
     otr_nfw_lot_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron NFW lot number"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron NFW lot number"
     )
     otr_nfw_expiry: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Opentron NFW expiry date"
     )
     otr_oil_lot_number: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron oil lot number"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron oil lot number"
     )
     otr_oil_expiry: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, comment="Opentron oil expiry date"
     )
     otr_pipette_carousel: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron pipette carousel identifier"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Opentron pipette carousel identifier",
     )
     otr_instrument_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="Opentron instrument name"
+        String(255, "utf8mb3_unicode_ci"), comment="Opentron instrument name"
     )
     amp_assign_control_bead_tube: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="AMP assign control bead tube barcode"
+        String(255, "utf8mb3_unicode_ci"),
+        comment="AMP assign control bead tube barcode",
     )
     amp_instrument_name: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255), comment="AMP instrument name"
+        String(255, "utf8mb3_unicode_ci"), comment="AMP instrument name"
     )
 
     sample: Mapped["Sample"] = relationship("Sample", back_populates="useq_wafer")
@@ -3705,15 +4151,15 @@ class EseqProductMetrics(Base):
     )
 
     id_eseq_pr_metrics_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_eseq_product: Mapped[str] = mapped_column(
-        CHAR(64), nullable=False, comment="Product id"
+        CHAR(64, "utf8mb3_unicode_ci"), nullable=False, comment="Product id"
     )
     id_run: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment="NPG run identifier"
+        INTEGER(unsigned=True), nullable=False, comment="NPG run identifier"
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime,
@@ -3721,25 +4167,26 @@ class EseqProductMetrics(Base):
         comment="Date this record was created or changed",
     )
     id_eseq_flowcell_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment='Foreign key, see "eseq_flowcell.id_eseq_flowcell_tmp"'
+        INTEGER(unsigned=True),
+        comment='Foreign key, see "eseq_flowcell.id_eseq_flowcell_tmp"',
     )
     lane: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Flowcell lane number"
+        SMALLINT(unsigned=True), comment="Flowcell lane number"
     )
     tag_index: Mapped[Optional[int]] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         comment="Lane-specific sequential unique index for a set of barcodes used to tag libraries derived from the same sample",
     )
     eseq_composition_tmp: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(600),
+        String(600, "utf8mb3_unicode_ci"),
         comment="JSON representation of the composition object, the column might be deleted in future",
     )
     elembio_SampleName: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         comment="Name the sample is deplexed under by Element Biosciences software, corresponds to elembio:SampleName iRODS metadata",
     )
     elembio_Project: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(10),
+        String(10, "utf8mb3_unicode_ci"),
         comment="Project record for this library in Elembio output files. Ideally should correspond to study.id_study_lims",
     )
     is_sequencing_control: Mapped[Optional[int]] = mapped_column(
@@ -3748,10 +4195,12 @@ class EseqProductMetrics(Base):
         comment="A boolean flag. If true, this is PhiX control library",
     )
     tag_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence used for deplexing the lane data, I1 read"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="Tag sequence used for deplexing the lane data, I1 read",
     )
     tag2_sequence: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Tag sequence used for deplexing the lane data, I2 read"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="Tag sequence used for deplexing the lane data, I2 read",
     )
     qc_seq: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
@@ -3766,11 +4215,11 @@ class EseqProductMetrics(Base):
         comment="Overall QC assessment outcome, a logical product (conjunction) of qc_seq and qc_lib values, defaults to the qc_seq value when qc_lib is not defined",
     )
     tag_decode_count: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Number of polonies (reads) assigned to this library after deplexing",
     )
     tag_decode_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Percent of polonies (reads) in a lane, which is assigned to this library after deplexing",
     )
 
@@ -3803,12 +4252,12 @@ class IseqProductMetrics(Base):
     )
 
     id_iseq_pr_metrics_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_iseq_product: Mapped[str] = mapped_column(
-        CHAR(64), nullable=False, comment="Product id"
+        CHAR(64, "utf8mb3_unicode_ci"), nullable=False, comment="Product id"
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime,
@@ -3816,17 +4265,20 @@ class IseqProductMetrics(Base):
         comment="Date this record was created or changed",
     )
     id_iseq_flowcell_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment='Flowcell id, see "iseq_flowcell.id_iseq_flowcell_tmp"'
+        INTEGER(unsigned=True),
+        comment='Flowcell id, see "iseq_flowcell.id_iseq_flowcell_tmp"',
     )
-    id_run: Mapped[Optional[int]] = mapped_column(INTEGER, comment="NPG run identifier")
+    id_run: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True), comment="NPG run identifier"
+    )
     position: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Flowcell lane number"
+        SMALLINT(unsigned=True), comment="Flowcell lane number"
     )
     tag_index: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Tag index, NULL if lane is not a pool"
+        SMALLINT(unsigned=True), comment="Tag index, NULL if lane is not a pool"
     )
     iseq_composition_tmp: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(600),
+        String(600, "utf8mb3_unicode_ci"),
         comment="JSON representation of the composition object, the column might be deleted in future",
     )
     qc_seq: Mapped[Optional[int]] = mapped_column(
@@ -3846,131 +4298,182 @@ class IseqProductMetrics(Base):
         comment="Overall QC assessment outcome, a logical product (conjunction) of qc_seq and qc_lib values, defaults to the qc_seq value when qc_lib is not defined",
     )
     tag_sequence4deplexing: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30),
+        String(30, "utf8mb3_unicode_ci"),
         comment="Tag sequence used for deplexing the lane, common suffix might have been truncated",
     )
     actual_forward_read_length: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Actual forward read length, bp"
+        SMALLINT(unsigned=True), comment="Actual forward read length, bp"
     )
     actual_reverse_read_length: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Actual reverse read length, bp"
+        SMALLINT(unsigned=True), comment="Actual reverse read length, bp"
     )
     indexing_read_length: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="Indexing read length, bp"
+        SMALLINT(unsigned=True), comment="Indexing read length, bp"
     )
-    tag_decode_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    tag_decode_count: Mapped[Optional[int]] = mapped_column(BIGINT)
-    insert_size_quartile1: Mapped[Optional[int]] = mapped_column(SMALLINT)
-    insert_size_quartile3: Mapped[Optional[int]] = mapped_column(SMALLINT)
-    insert_size_median: Mapped[Optional[int]] = mapped_column(SMALLINT)
-    insert_size_num_modes: Mapped[Optional[int]] = mapped_column(SMALLINT)
+    tag_decode_percent: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
+    tag_decode_count: Mapped[Optional[int]] = mapped_column(BIGINT(unsigned=True))
+    insert_size_quartile1: Mapped[Optional[int]] = mapped_column(
+        SMALLINT(unsigned=True)
+    )
+    insert_size_quartile3: Mapped[Optional[int]] = mapped_column(
+        SMALLINT(unsigned=True)
+    )
+    insert_size_median: Mapped[Optional[int]] = mapped_column(SMALLINT(unsigned=True))
+    insert_size_num_modes: Mapped[Optional[int]] = mapped_column(
+        SMALLINT(unsigned=True)
+    )
     insert_size_normal_fit_confidence: Mapped[Optional[float]] = mapped_column(
-        FLOAT(3, 2)
+        FLOAT(3, 2, unsigned=True)
     )
-    gc_percent_forward_read: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    gc_percent_reverse_read: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
+    gc_percent_forward_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
+    gc_percent_reverse_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
     sequence_mismatch_percent_forward_read: Mapped[Optional[float]] = mapped_column(
-        FLOAT(4, 2)
+        FLOAT(4, 2, unsigned=True)
     )
     sequence_mismatch_percent_reverse_read: Mapped[Optional[float]] = mapped_column(
-        FLOAT(4, 2)
+        FLOAT(4, 2, unsigned=True)
     )
-    adapters_percent_forward_read: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    adapters_percent_reverse_read: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    ref_match1_name: Mapped[Optional[str]] = mapped_column(VARCHAR(100))
+    adapters_percent_forward_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
+    adapters_percent_reverse_read: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
+    ref_match1_name: Mapped[Optional[str]] = mapped_column(
+        String(100, "utf8mb3_unicode_ci")
+    )
     ref_match1_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    ref_match2_name: Mapped[Optional[str]] = mapped_column(VARCHAR(100))
+    ref_match2_name: Mapped[Optional[str]] = mapped_column(
+        String(100, "utf8mb3_unicode_ci")
+    )
     ref_match2_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    q20_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q20_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q30_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q30_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q40_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    q40_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(INTEGER)
-    num_reads: Mapped[Optional[int]] = mapped_column(BIGINT)
+    q20_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q20_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q30_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q30_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q40_yield_kb_forward_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    q40_yield_kb_reverse_read: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
+    num_reads: Mapped[Optional[int]] = mapped_column(BIGINT(unsigned=True))
     percent_mapped: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
     percent_duplicate: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
     chimeric_reads_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT(5, 2), comment="mate_mapped_defferent_chr_5 as percentage of all"
+        FLOAT(5, 2, unsigned=True),
+        comment="mate_mapped_defferent_chr_5 as percentage of all",
     )
     human_percent_mapped: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
     human_percent_duplicate: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    genotype_sample_name_match: Mapped[Optional[str]] = mapped_column(VARCHAR(8))
+    genotype_sample_name_match: Mapped[Optional[str]] = mapped_column(
+        String(8, "utf8mb3_unicode_ci")
+    )
     genotype_sample_name_relaxed_match: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(8)
+        String(8, "utf8mb3_unicode_ci")
     )
     genotype_mean_depth: Mapped[Optional[float]] = mapped_column(FLOAT(7, 2))
-    mean_bait_coverage: Mapped[Optional[float]] = mapped_column(FLOAT(8, 2))
-    on_bait_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
-    on_or_near_bait_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2))
+    mean_bait_coverage: Mapped[Optional[float]] = mapped_column(
+        FLOAT(8, 2, unsigned=True)
+    )
+    on_bait_percent: Mapped[Optional[float]] = mapped_column(FLOAT(5, 2, unsigned=True))
+    on_or_near_bait_percent: Mapped[Optional[float]] = mapped_column(
+        FLOAT(5, 2, unsigned=True)
+    )
     mean_bait_target_coverage: Mapped[Optional[float]] = mapped_column(
         Float,
         comment="Mean coverage of the design target regions of a bait library (if used and known)",
     )
-    verify_bam_id_average_depth: Mapped[Optional[float]] = mapped_column(FLOAT(11, 2))
-    verify_bam_id_score: Mapped[Optional[float]] = mapped_column(FLOAT(6, 5))
-    verify_bam_id_snp_count: Mapped[Optional[int]] = mapped_column(INTEGER)
+    verify_bam_id_average_depth: Mapped[Optional[float]] = mapped_column(
+        FLOAT(11, 2, unsigned=True)
+    )
+    verify_bam_id_score: Mapped[Optional[float]] = mapped_column(
+        FLOAT(6, 5, unsigned=True)
+    )
+    verify_bam_id_snp_count: Mapped[Optional[int]] = mapped_column(
+        INTEGER(unsigned=True)
+    )
     rna_exonic_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Exonic Rate is the fraction mapping within exons"
+        FLOAT(unsigned=True), comment="Exonic Rate is the fraction mapping within exons"
     )
     rna_percent_end_2_reads_sense: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Percentage of intragenic End 2 reads that were sequenced in the sense direction.",
     )
     rna_rrna_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="rRNA Rate is per total reads"
+        FLOAT(unsigned=True), comment="rRNA Rate is per total reads"
     )
     rna_genes_detected: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of genes detected with at least 5 reads."
+        INTEGER(unsigned=True),
+        comment="Number of genes detected with at least 5 reads.",
     )
     rna_norm_3_prime_coverage: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="3 prime n-based normalization: n is the transcript length at that end; norm is the ratio between the coverage at the 3 prime end and the average coverage of the full transcript, averaged over all transcripts",
     )
     rna_norm_5_prime_coverage: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="5 prime n-based normalization: n is the transcript length at that end; norm is the ratio between the coverage at the 5 prime end and the average coverage of the full transcript, averaged over all transcripts",
     )
     rna_intronic_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Intronic rate is the fraction mapping within introns"
+        FLOAT(unsigned=True),
+        comment="Intronic rate is the fraction mapping within introns",
     )
     rna_transcripts_detected: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of transcripts detected with at least 5 reads"
+        INTEGER(unsigned=True),
+        comment="Number of transcripts detected with at least 5 reads",
     )
     rna_globin_percent_tpm: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Percentage of globin genes TPM (transcripts per million) detected",
     )
     rna_mitochondrial_percent_tpm: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Percentage of mitochondrial genes TPM (transcripts per million) detected",
     )
     gbs_call_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="The GbS call rate is the fraction of loci called on the relevant primer panel",
     )
     gbs_pass_rate: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="The GbS pass rate is the fraction of loci called and passing filters on the relevant primer panel",
     )
     nrd_percent: Mapped[Optional[float]] = mapped_column(
         FLOAT(5, 2), comment="Percent of non-reference discordance"
     )
     target_filter: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Filter used to produce the target stats file"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="Filter used to produce the target stats file",
     )
     target_length: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The total length of the target regions"
+        BIGINT(unsigned=True), comment="The total length of the target regions"
     )
     target_mapped_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of mapped reads passing the target filter"
+        BIGINT(unsigned=True),
+        comment="The number of mapped reads passing the target filter",
     )
     target_proper_pair_mapped_reads: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="The number of proper pair mapped reads passing the target filter",
     )
     target_mapped_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of mapped bases passing the target filter"
+        BIGINT(unsigned=True),
+        comment="The number of mapped bases passing the target filter",
     )
     target_coverage_threshold: Mapped[Optional[int]] = mapped_column(
         Integer,
@@ -3981,13 +4484,16 @@ class IseqProductMetrics(Base):
         comment="The percentage of the target covered at greater than the depth specified",
     )
     target_autosome_filter: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(30), comment="Filter used to produce the autosome target stats file"
+        String(30, "utf8mb3_unicode_ci"),
+        comment="Filter used to produce the autosome target stats file",
     )
     target_autosome_length: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The total length of the autosomes only target regions"
+        BIGINT(unsigned=True),
+        comment="The total length of the autosomes only target regions",
     )
     target_autosome_mapped_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of mapped bases passing the autosome target filters"
+        BIGINT(unsigned=True),
+        comment="The number of mapped bases passing the autosome target filters",
     )
     target_autosome_coverage_threshold: Mapped[Optional[int]] = mapped_column(
         Integer,
@@ -4000,46 +4506,51 @@ class IseqProductMetrics(Base):
         )
     )
     sub_titv_class: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="The ratio of transition substitution counts to transvertion"
+        FLOAT(unsigned=True),
+        comment="The ratio of transition substitution counts to transvertion",
     )
     sub_titv_mean_ca: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="TiTv where count of CA+GT is taken as if it were mean across other transversions",
     )
     sub_frac_sub_hq: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="Fraction of substitutions which are high quality (>=Q30)"
+        FLOAT(unsigned=True),
+        comment="Fraction of substitutions which are high quality (>=Q30)",
     )
     sub_oxog_bias: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="How similar CA to GT counts are within each read (high quality >=Q30 substitutions only) in order to detect OxoG oxidative artifacts",
     )
     sub_sym_gt_ca: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="How symmetrical CA and GT counts are within each read"
+        FLOAT(unsigned=True),
+        comment="How symmetrical CA and GT counts are within each read",
     )
     sub_sym_ct_ga: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="How symmetrical CT and GA counts are within each read"
+        FLOAT(unsigned=True),
+        comment="How symmetrical CT and GA counts are within each read",
     )
     sub_sym_ag_tc: Mapped[Optional[float]] = mapped_column(
-        FLOAT, comment="How symmetrical AG and TC counts are within each read"
+        FLOAT(unsigned=True),
+        comment="How symmetrical AG and TC counts are within each read",
     )
     sub_cv_ti: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Coefficient of variation across all Ti substitutions = std(Ti)/mean(Ti)",
     )
     sub_gt_ti: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Computed as a maximum between (i) ratio of GT counts to TC and (ii) ratio CA to GA",
     )
     sub_gt_mean_ti: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Computed as a maximum between (i) ratio of GT counts to mean(Ti) and (ii) ratio CA to mean(Ti)",
     )
     sub_ctoa_oxh: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="This metric is used to compute the likelihood of C2A and its predicted level",
     )
     sub_ctoa_art_predicted_level: Mapped[Optional[int]] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         comment="C2A predicted level - 0 = not present, 1 = low, 2 = medium and 3 = high",
     )
 
@@ -4052,15 +4563,19 @@ class IseqProductMetrics(Base):
     iseq_product_ampliconstats: Mapped[list["IseqProductAmpliconstats"]] = relationship(
         "IseqProductAmpliconstats", back_populates="iseq_product_metrics"
     )
-    iseq_product_components: Mapped[list["IseqProductComponents"]] = relationship(
+    iseq_product_components_id_iseq_pr_component_tmp: Mapped[
+        list["IseqProductComponents"]
+    ] = relationship(
         "IseqProductComponents",
         foreign_keys="[IseqProductComponents.id_iseq_pr_component_tmp]",
         back_populates="iseq_product_metrics",
     )
-    iseq_product_components_: Mapped[list["IseqProductComponents"]] = relationship(
-        "IseqProductComponents",
-        foreign_keys="[IseqProductComponents.id_iseq_pr_tmp]",
-        back_populates="iseq_product_metrics_",
+    iseq_product_components_id_iseq_pr_tmp: Mapped[list["IseqProductComponents"]] = (
+        relationship(
+            "IseqProductComponents",
+            foreign_keys="[IseqProductComponents.id_iseq_pr_tmp]",
+            back_populates="iseq_product_metrics_",
+        )
     )
 
 
@@ -4101,7 +4616,9 @@ class PacBioProductMetrics(Base):
         comment='PacBio run well metrics id, see "pac_bio_run_well_metrics.id_pac_bio_rw_metrics_tmp"',
     )
     id_pac_bio_product: Mapped[str] = mapped_column(
-        CHAR(64), nullable=False, comment="Product id"
+        CHAR(64, collation="utf8mb3_unicode_ci"),
+        nullable=False,
+        comment="Product id",
     )
     id_pac_bio_tmp: Mapped[Optional[int]] = mapped_column(
         Integer, comment='PacBio run id, see "pac_bio_run.id_pac_bio_tmp"'
@@ -4111,20 +4628,20 @@ class PacBioProductMetrics(Base):
         comment="The final QC outcome of the product as 0(failed), 1(passed) or NULL",
     )
     hifi_read_bases: Mapped[Optional[int]] = mapped_column(
-        BIGINT, comment="The number of HiFi bases"
+        BIGINT(unsigned=True), comment="The number of HiFi bases"
     )
     hifi_num_reads: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The number of HiFi reads"
+        INTEGER(unsigned=True), comment="The number of HiFi reads"
     )
     hifi_read_length_mean: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="The mean HiFi read length"
+        INTEGER(unsigned=True), comment="The mean HiFi read length"
     )
     barcode4deplexing: Mapped[Optional[str]] = mapped_column(
         String(62),
         comment="The barcode recorded in producing deplexed metrics for this product",
     )
     barcode_quality_score_mean: Mapped[Optional[int]] = mapped_column(
-        SMALLINT, comment="The mean barcode HiFi quality score"
+        SMALLINT(unsigned=True), comment="The mean barcode HiFi quality score"
     )
     hifi_bases_percent: Mapped[Optional[float]] = mapped_column(
         Float,
@@ -4168,15 +4685,15 @@ class UseqProductMetrics(Base):
     )
 
     id_useq_pr_metrics_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_run: Mapped[int] = mapped_column(
-        INTEGER, nullable=False, comment="NPG run identifier"
+        INTEGER(unsigned=True), nullable=False, comment="NPG run identifier"
     )
     id_useq_product: Mapped[str] = mapped_column(
-        CHAR(64, collation="utf8mb3_unicode_ci"), nullable=False, comment="Product id"
+        CHAR(64, "utf8mb3_unicode_ci"), nullable=False, comment="Product id"
     )
     last_changed: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime,
@@ -4184,9 +4701,12 @@ class UseqProductMetrics(Base):
         comment="Date this record was created or changed",
     )
     id_useq_wafer_tmp: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment='Foreign key, see "useq_wafer.id_useq_wafer_tmp"'
+        INTEGER(unsigned=True),
+        comment='Foreign key, see "useq_wafer.id_useq_wafer_tmp"',
     )
-    tag_index: Mapped[Optional[int]] = mapped_column(SMALLINT, comment="NPG tag index")
+    tag_index: Mapped[Optional[int]] = mapped_column(
+        SMALLINT(unsigned=True), comment="NPG tag index"
+    )
     is_sequencing_control: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
         server_default=text("'0'"),
@@ -4206,6 +4726,10 @@ class UseqProductMetrics(Base):
         String(255, "utf8mb3_unicode_ci"),
         comment="Library name as given in Ultimagen Genomics manifest, see also ultimagen:Library_name iRODS metadata",
     )
+    ultimagen_application_type: Mapped[Optional[str]] = mapped_column(
+        String(255, "utf8mb3_unicode_ci"),
+        comment="Pipeline/tool which was used for on-board data processing",
+    )
     qc_seq: Mapped[Optional[int]] = mapped_column(
         TINYINT(1),
         comment="Sequencing lane level QC outcome, a result of either manual or automatic assessment by core",
@@ -4219,21 +4743,21 @@ class UseqProductMetrics(Base):
         comment="Overall QC assessment outcome, a logical product (conjunction) of qc_seq and qc_lib values, defaults to the qc_seq value when qc_lib is not defined",
     )
     tag_decode_count: Mapped[Optional[int]] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         comment="Number of reads on a wafer assigned to this library after deplexing",
     )
     tag_decode_percent: Mapped[Optional[float]] = mapped_column(
-        FLOAT,
+        FLOAT(unsigned=True),
         comment="Percent of reads on a wafer, which is assigned to this library after deplexing",
     )
     q20_yield_kb: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Yield in KBs at and above Q20"
+        INTEGER(unsigned=True), comment="Yield in KBs at and above Q20"
     )
     q30_yield_kb: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Yield in KBs at and above Q30"
+        INTEGER(unsigned=True), comment="Yield in KBs at and above Q30"
     )
     total_yield_kb: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Overall sample yield in KBs"
+        INTEGER(unsigned=True), comment="Overall sample yield in KBs"
     )
 
     useq_run_metrics: Mapped["UseqRunMetrics"] = relationship(
@@ -4267,32 +4791,32 @@ class IseqProductAmpliconstats(Base):
     )
 
     id_iseq_pr_astats_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_iseq_product: Mapped[str] = mapped_column(
-        CHAR(64),
+        CHAR(64, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Product id, a foreign key into iseq_product_metrics table",
     )
     primer_panel: Mapped[str] = mapped_column(
-        VARCHAR(255),
+        String(255, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="A string uniquely identifying the primer panel",
     )
     primer_panel_num_amplicons: Mapped[int] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         nullable=False,
         comment="Total number of amplicons in the primer panel",
     )
     amplicon_index: Mapped[int] = mapped_column(
-        SMALLINT,
+        SMALLINT(unsigned=True),
         nullable=False,
         comment="Amplicon index (position) in the primer panel, from 1 to the value of primer_panel_num_amplicons",
     )
     pp_name: Mapped[str] = mapped_column(
-        VARCHAR(40),
+        String(40, "utf8mb3_unicode_ci"),
         nullable=False,
         comment="Name of the portable pipeline that generated the data",
     )
@@ -4307,7 +4831,7 @@ class IseqProductAmpliconstats(Base):
         comment="Datetime this record was created or changed",
     )
     pp_version: Mapped[Optional[str]] = mapped_column(
-        VARCHAR(40),
+        String(40, "utf8mb3_unicode_ci"),
         comment="Version of the portable pipeline and/or samtools that generated the data",
     )
     metric_FPCOV_1: Mapped[Optional[decimal.Decimal]] = mapped_column(
@@ -4323,7 +4847,7 @@ class IseqProductAmpliconstats(Base):
         DECIMAL(5, 2), comment="Coverage percent at depth 100"
     )
     metric_FREADS: Mapped[Optional[int]] = mapped_column(
-        INTEGER, comment="Number of aligned filtered reads"
+        INTEGER(unsigned=True), comment="Number of aligned filtered reads"
     )
 
     iseq_product_metrics: Mapped["IseqProductMetrics"] = relationship(
@@ -4357,25 +4881,27 @@ class IseqProductComponents(Base):
     )
 
     id_iseq_pr_components_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         primary_key=True,
         comment="Internal to this database id, value can change",
     )
     id_iseq_pr_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         nullable=False,
         comment="iseq_product_metrics table row id for the product",
     )
     id_iseq_pr_component_tmp: Mapped[int] = mapped_column(
-        BIGINT,
+        BIGINT(unsigned=True),
         nullable=False,
         comment="iseq_product_metrics table row id for one of this product's components",
     )
     num_components: Mapped[int] = mapped_column(
-        TINYINT, nullable=False, comment="Number of component products for this product"
+        TINYINT(unsigned=True),
+        nullable=False,
+        comment="Number of component products for this product",
     )
     component_index: Mapped[int] = mapped_column(
-        TINYINT,
+        TINYINT(unsigned=True),
         nullable=False,
         comment="Unique component index within all components of this product, \na value from 1 to the value of num_components column for this product",
     )
@@ -4383,10 +4909,10 @@ class IseqProductComponents(Base):
     iseq_product_metrics: Mapped["IseqProductMetrics"] = relationship(
         "IseqProductMetrics",
         foreign_keys=[id_iseq_pr_component_tmp],
-        back_populates="iseq_product_components",
+        back_populates="iseq_product_components_id_iseq_pr_component_tmp",
     )
     iseq_product_metrics_: Mapped["IseqProductMetrics"] = relationship(
         "IseqProductMetrics",
         foreign_keys=[id_iseq_pr_tmp],
-        back_populates="iseq_product_components_",
+        back_populates="iseq_product_components_id_iseq_pr_tmp",
     )

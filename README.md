@@ -15,10 +15,18 @@ Currently, record creation from this code is performed only on the iRODS locatio
 `seq_product_irods_locations`. We allow for vendor-specific `sqlalchemy` code where trying
 to be vendor-agnostic would result in implementing a large volume of custom code and tests.
 
-This ORM has been auto-generated with [`sqlacodegen 4.0.2`](https://pypi.org/project/sqlacodegen/4.0.2/) with post-generation manual modification to deal with awkward bits.
+This ORM has been auto-generated with [`sqlacodegen 4.0.2`](https://pypi.org/project/sqlacodegen/4.0.2/)
+with post-generation manual modification to deal with awkward bits. Only a selection
+of practically useful tables is represented in the ORM.
 
 ```bash
-sqlacodegen --generator declarative mysql+pymysql://user:pass@host:port/dbname > src/npgmlwarehouse/db/schema.py
+sqlacodegen --generator declarative --tables 'aliquot,bmap_flowcell,...' mysql+pymysql://user:pass@host:port/dbname > src/npgmlwarehouse/db/schema.py
+```
+
+A list of tables can be generated as follows:
+
+```bash
+echo 'show tables' | mlwh-livero | grep -v Tables_in | grep -v gsu | grep -v tol_sample | grep -v lighthouse | grep -v cgap| grep -v iseq_external | grep -v iseq_heron | grep -v schema_migrations | grep -v ar_internal_metadata | xargs echo | perl -nle 's/\s/,/g;print $_'
 ```
 
 ## Development

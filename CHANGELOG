@@ -5,7 +5,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.0.0]
+## [1.0.1] 2026-04-16
+
+### Changed
+
+* In release 0.4.0 some test functionality was moved to under `/src`. The dependencies
+  of this code were still classified as optional and therefore were not installed
+  in the production build of a package that has this package as a dependency. This
+  caused a run-time failure due to the unsatisfied dependencies. 
+
+  `sqlalchemy-utils` and `pyyaml` are moved from optional to required dependencies.
+
+## [1.0.0] 2026-04-07
 
 ### Changed
 

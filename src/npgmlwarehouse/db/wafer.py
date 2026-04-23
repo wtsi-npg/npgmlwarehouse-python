@@ -16,8 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Functions for retrieving the barcoded moieties loaded into one wafer/flowcell/smrtcell
+Functions for retrieving the barcoded moieties loaded into one wafer.
 """
+
+from typing import Sequence
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -29,23 +31,25 @@ from npgmlwarehouse.db.schema import (
 )
 
 
-def get_wafer_content_by_lims_id(
+def get_records_by_wafer_lims_id(
     session: Session, id_wafer_lims: str
-) -> list[UseqWafer]:
+) -> Sequence[UseqWafer]:
     """
-    Get the LIMS entities that were assigned to a wafer for an Ultimagen run with sample and study metadata.
+    Get all LIMS entities that correspond to an Ultimagen wafer along with
+    their sample and study data.
 
     Args:
         session (sqlalchemy.orm.Session):
             Database session
-        id_wafer_lims (str): Unique ID for Ultimagen runs which consists of
-            <batch_for_opentrons>_<id_pool_id>_<runcount>
+        id_wafer_lims (str): Unique ID for an Ultimagen wafer which consists of
+            <batch_for_opentrons>_<pool_barcode>_<count>. The count is used to
+            disambiguate multiple wafers which were processed in the same batch
+            opentrons process for the same library pool.
 
     Returns:
-    -------
-        list[UseqWafer]: Collection of samples from wafer data
+        Sequence[UseqWafer]: Collection of wafer records
     """
     query = (select(UseqWafer).join(Sample).join(Study)).where(
         UseqWafer.id_wafer_lims == id_wafer_lims
     )
-    return list(session.scalars(query).all())
+    return session.scalars(query).all()

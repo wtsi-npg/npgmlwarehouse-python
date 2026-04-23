@@ -5,6 +5,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] 2026-04-23
+
+### Changed
+
+* Previously unused function `get_wafer_content_by_lims_id` is renamed to
+  `get_records_by_wafer_lims_id` to reflect its functionality and leave room
+  for retrieval by other LIMS IDs in future. Since the wafers have their own
+  manufacturer-assigned IDs, it is important to emphasise that the argument
+  to this function is the ID assigned by LIMS.
+
+  In this function the type of the returned object is changed from `list` to
+  `Sequence` to be consistent with other code in this package.
+
+  To follow the existing pattern of naming files with unit tests,  tests for
+  the function are moved from `tests/test_schema.py` to `tests/test_wafer.py`.
+
+### Removed
+
+  `tests/test_schema.py`
+
 ## [1.0.1] 2026-04-16
 
 ### Changed

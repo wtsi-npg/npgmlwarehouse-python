@@ -18,7 +18,7 @@
 import os
 import re
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib import import_module
 from pathlib import Path
 from typing import Any, Generator
@@ -35,7 +35,7 @@ class MlwarehouseConfig:
     dbport: str
     dbuser: str
     dbname: str
-    dbpass: str
+    dbpass: str = field(repr=False)
 
     @property
     def url(self):

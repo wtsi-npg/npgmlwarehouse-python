@@ -15,11 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import Session
 
-from npgmlwarehouse.db.schema import SeqProductIrodsLocations, UseqProductMetrics
+from npgmlwarehouse.db.schema import (
+    Sample,
+    SeqProductIrodsLocations,
+    Study,
+    UseqProductMetrics,
+)
 
 
 def get_ultimagen_target_product_records(session: Session, id_run: int):
@@ -45,6 +50,85 @@ def get_ultimagen_target_product_records(session: Session, id_run: int):
         )
     )
     return records.all()
+
+
+def validate_studies(session: Session, study_ids: list[str]):
+    """
+    Validates a list of string study IDs.
+
+    Validates a list of study IDs by checking whether the `study` table
+    record is available for each of the IDs. The input least can contain
+    duplicate values. An empty input list will cause an error.
+
+    Errors if any of the given study IDs
+      * is not a string,
+      * is invalid, the error message lists all invalid IDs,
+      * maps to multiple database rows.
+
+    Args:
+        session (Session):
+            Database session.
+        study_ids (str):
+            Study IDs to validate.
+    Returns:
+        True if all sudies have been validated.
+    """
+
+    if len(study_ids) == 0:
+        raise ValueError("A non-empty list of string study IDs is required")
+    if len([id for id in study_ids if isinstance(id, str)]) < len(study_ids):
+        raise TypeError("All study IDs should be strings")
+
+    unique_ids = set(study_ids)
+
+    q = select(Study.id_study_lims).where(Study.id_study_lims.in_(unique_ids))
+    available = session.scalars(q).all()
+    missing = [study_id for study_id in unique_ids if study_id not in available]
+    if len(missing):
+        raise ValueError(
+            "Invalid stud{end}: {list_of}".format(
+                end="y" if len(missing) == 1 else "ies",
+                list_of=", ".join(sorted(missing)),
+            )
+        )
+    if len(available) > len(unique_ids):
+        raise Exception(
+            (
+                "Duplicate MLWH rows for some IDs in "
+                f"{', '.join(sorted(list(unique_ids)))}"
+            )
+        )
+
+    return True
+
+
+def get_sample_id_for_name(session: Session, sample_name: str) -> str | None:
+    """
+    Retrieves sample ID for the sample name given as the argument.
+
+    Searches the `sample` table for a record with the given name. Examines
+    values in two columns - `name` and `supplier_name`.
+
+    Errors if multiple records are found. Returns sample's ID if a single
+    record is found or `None` if no record is found.
+
+    Args:
+        session (Session):
+            Database session.
+        name (name):
+            Sample name.
+    Returns:
+        String sample ID if found or None
+    """
+    if not isinstance(sample_name, str):
+        raise TypeError("sample_name argument should be a string")
+    if not sample_name:
+        raise ValueError("sample_name argument should be a non-empty string")
+
+    q = select(Sample.id_sample_lims).where(
+        or_(Sample.name == sample_name, Sample.supplier_name == sample_name)
+    )
+    return session.scalars(q).one_or_none()
 
 
 def create_upload_irods_location_records(

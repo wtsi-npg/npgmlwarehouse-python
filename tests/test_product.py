@@ -1,11 +1,14 @@
 from time import sleep
 
 from pytest import mark as m
+from pytest import raises
 from sqlalchemy import select
 
 from npgmlwarehouse.db.product import (
     create_upload_irods_location_records,
+    get_sample_id_for_name,
     get_ultimagen_target_product_records,
+    validate_studies,
 )
 from npgmlwarehouse.db.schema import SeqProductIrodsLocations
 
@@ -385,3 +388,49 @@ class TestProduct(object):
         record = records.pop()
         assert record.irods_data_relative_path == None
         assert record.irods_secondary_data_relative_path == None
+
+
+@m.describe("Test Sample Retrieval")
+class TestSampleRetrieval(object):
+    def test_get_sample_id(self, testdb):
+
+        with raises(TypeError):
+            get_sample_id_for_name(testdb)
+        with raises(TypeError, match=r"sample_name argument should be a string"):
+            get_sample_id_for_name(testdb, 45)
+        with raises(TypeError, match=r"sample_name argument should be a string"):
+            get_sample_id_for_name(testdb, None)
+        with raises(
+            ValueError, match=r"sample_name argument should be a non-empty string"
+        ):
+            get_sample_id_for_name(testdb, "")
+
+        assert get_sample_id_for_name(testdb, "Burkholderia 1") == "10000"
+        assert get_sample_id_for_name(testdb, "Burkholderia 2") == "10001"
+        assert get_sample_id_for_name(testdb, "Burkholderia 25") is None
+
+
+@m.describe("Test Study Validation")
+class TestStudyValidation(object):
+    def test_validate_studies(self, testdb):
+
+        with raises(TypeError):
+            assert validate_studies(testdb)
+        with raises(
+            ValueError, match=r"A non-empty list of string study IDs is required"
+        ):
+            assert validate_studies(testdb, [])
+        with raises(TypeError, match=r"All study IDs should be strings"):
+            assert validate_studies(testdb, ["1234", 34])
+        with raises(Exception, match=r"Duplicate MLWH rows for some IDs in 619, 623"):
+            assert validate_studies(testdb, ["623", "619", "623"])
+
+        assert validate_studies(testdb, ["619"]) is True
+        assert validate_studies(testdb, ["619", "622"]) is True
+
+        with raises(ValueError, match=r"Invalid study: 620"):
+            assert validate_studies(testdb, ["620"])
+        with raises(ValueError, match=r"Invalid studies: 620, 621"):
+            assert validate_studies(testdb, ["621", "620"])
+        with raises(ValueError, match=r"Invalid study: 620"):
+            assert validate_studies(testdb, ["619", "620"])

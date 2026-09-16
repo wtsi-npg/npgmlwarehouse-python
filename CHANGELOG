@@ -5,6 +5,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] 2026-09-16
+
+### Added
+
+* `validate_studies` and `get_sample_id_for_name` functions are added to
+  `npgmlwarehouse.db.product`. Both are needed for extending phase2 Ultimagen
+  pipeline to walkup runs.
+
 ## [1.1.1] - 2026-05-20
 
 ### Fixed

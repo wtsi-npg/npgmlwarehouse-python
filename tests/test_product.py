@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from npgmlwarehouse.db.product import (
     create_upload_irods_location_records,
+    get_elembio_target_product_records,
     get_sample_id_for_name,
     get_ultimagen_target_product_records,
     validate_studies,
@@ -31,6 +32,18 @@ class TestProduct(object):
     @m.it("Returns an empty collection")
     def test_get_product_records_no_record(self, testdb):
         records = get_ultimagen_target_product_records(testdb, 40000)
+        assert len(records) == 0
+
+    @m.context("When product records are present in `eseq_product_metrics` table")
+    @m.it("Retrieves the product records from MLWH")
+    def test_get_elembio_product_records(self, testdb):
+        records = get_elembio_target_product_records(testdb, 50932)
+        assert len(records) == 4
+
+    @m.context("When there is no product records in `eseq_product_metrics` table")
+    @m.it("Returns an empty collection")
+    def test_get_elembio_product_records_no_record(self, testdb):
+        records = get_elembio_target_product_records(testdb, 40000)
         assert len(records) == 0
 
     @m.context("When inserting a product record in `seq_product_irods_locations`")

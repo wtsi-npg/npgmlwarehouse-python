@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+* `get_elembio_target_product_records` functionality to retrieve Elembio
+  product records.
+
 ## [1.2.0] 2026-09-16
 
 ### Added

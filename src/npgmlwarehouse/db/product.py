@@ -20,6 +20,7 @@ from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import Session
 
 from npgmlwarehouse.db.schema import (
+    EseqProductMetrics,
     Sample,
     SeqProductIrodsLocations,
     Study,
@@ -47,6 +48,31 @@ def get_ultimagen_target_product_records(session: Session, id_run: int):
             UseqProductMetrics.id_run == id_run,
             UseqProductMetrics.is_sequencing_control == 0,
             UseqProductMetrics.tag_index != 0,
+        )
+    )
+    return records.all()
+
+
+def get_elembio_target_product_records(session: Session, id_run: int):
+    """
+    Retrieves target Elembio product records for a run.
+
+    Args:
+        session (Session):
+            Database session.
+        id_run (int):
+            Run ID as saved in tracking DB
+
+    Returns:
+        Sequence[EseqProductMetrics]:
+            An iterable collection of product records related to the specified run ID.
+            An empty Sequence is returned if no product record is found.
+    """
+    records = session.scalars(
+        select(EseqProductMetrics).where(
+            EseqProductMetrics.id_run == id_run,
+            EseqProductMetrics.is_sequencing_control == 0,
+            EseqProductMetrics.tag_index != 0,
         )
     )
     return records.all()

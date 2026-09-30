@@ -26,7 +26,7 @@ dynamic = ["version"]
 description = "ORM and access layer for the existing multi-lims warehouse"
 dependencies = [
     "pyyaml",
-    "sqlalchemy>2.0.0",
+    "sqlalchemy>2.0.0,<2.1.0",
     "sqlalchemy-utils",
 ]
 

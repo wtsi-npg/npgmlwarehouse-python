@@ -6,6 +6,7 @@ from sqlalchemy import select
 
 from npgmlwarehouse.db.product import (
     create_upload_irods_location_records,
+    get_elembio_target_product_records,
     get_sample_id_for_name,
     get_ultimagen_target_product_records,
     validate_studies,
@@ -31,6 +32,31 @@ class TestProduct(object):
     @m.it("Returns an empty collection")
     def test_get_product_records_no_record(self, testdb):
         records = get_ultimagen_target_product_records(testdb, 40000)
+        assert len(records) == 0
+
+    @m.context("When product records are present in `eseq_product_metrics` table")
+    @m.it("Retrieves the product records from MLWH")
+    def test_get_elembio_product_records(self, testdb):
+        id_run = 50932
+        records = get_elembio_target_product_records(testdb, id_run)
+        assert len(records) == 4
+        expected_lane_tags = {
+            "f802fb877d7158d091fc50bb2c1c1ba7727aef399f2f5673b69d850521395b90": (1, 5),
+            "fb8f9fa2ad639fb868e611ffa0f9059453f01fbecef0a222e048d2a34c2d7eb0": (1, 6),
+            "ecae7a1c37a5d0542a52ae3a2f24bd6de7fd8d4217653c755863ca4506534d74": (2, 5),
+            "9f98d9939dbdc7eda86d6e748afa01298f9e3090ac52071bbbaafd49721ab193": (1, 6),
+        }
+        for record in records:
+            assert record.id_run == id_run
+            assert expected_lane_tags[record.id_eseq_product] == (
+                record.lane,
+                record.tag_index,
+            )
+
+    @m.context("When there is no product records in `eseq_product_metrics` table")
+    @m.it("Returns an empty collection")
+    def test_get_elembio_product_records_no_record(self, testdb):
+        records = get_elembio_target_product_records(testdb, 40000)
         assert len(records) == 0
 
     @m.context("When inserting a product record in `seq_product_irods_locations`")

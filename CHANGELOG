@@ -3,7 +3,18 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [1.3.0] 2026-09-30
+
+### Added
+
+* `get_elembio_target_product_records` functionality to retrieve Elembio
+  product records.
+
+### Changed
+
+* `sqlalchemy` dependency is pinned to versions `>2.0.0` and `<2.1.0` because the currently
+  available `sqlalchemy-utils` version `0.42.1` is not compatible with versions 
+  of `sqlalchemy` starting from `2.1.0`
 
 ## [1.2.0] 2026-09-16
 
